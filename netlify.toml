@@ -1,0 +1,49 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[build.environment]
+  # scripts/ contains local dev/test utilities — exclude from secrets scanning
+  SECRETS_SCAN_OMIT_PATHS = "scripts"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type"
+
+[[redirects]]
+  from = "/api/get"
+  to = "/.netlify/functions/notion-get"
+  status = 200
+
+[[redirects]]
+  from = "/api/save"
+  to = "/.netlify/functions/notion-save"
+  status = 200
+
+[[redirects]]
+  from = "/api/delete"
+  to = "/.netlify/functions/notion-delete"
+  status = 200
+
+[[redirects]]
+  from = "/api/setup"
+  to = "/.netlify/functions/notion-setup"
+  status = 200
+
+# Pre-Call Reminder — every Friday at 15:00 UTC (7:00 AM Pacific Time)
+[functions."send-reminder"]
+  schedule = "0 15 * * 5"
+
+# Agenda Email — every Monday and Tuesday at 15:00 UTC (7:00 AM Pacific Time)
+# Only sends if today matches the stored meeting date in Hub Settings
+[functions."send-agenda"]
+  schedule = "0 15 * * 1,2"

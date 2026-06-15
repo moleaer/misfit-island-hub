@@ -1,0 +1,12 @@
+{
+  "name": "misfit-island-hub",
+  "version": "1.0.0",
+  "description": "Misfit Island Water Process Meeting Hub",
+  "dependencies": {
+    "@notionhq/client": "^2.2.15",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

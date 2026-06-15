@@ -1,0 +1,2153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Misfit Island · Water Process Hub</title>
+<!-- Moleaer Brand 2026: Arial is the official typeface -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+  :root {
+    --blue:       #1b75bb;
+    --blue-dark:  #134f82;
+    --blue-mid:   #2d8fd4;
+    --blue-light: #ddeef8;
+    --blue-xlt:   #eef6fc;
+    --teal:       #81d2e7;
+    --teal-lt:    #e0f4f9;
+    --silver:     #b0b0b0;
+    --silver-lt:  #d4d4d4;
+    --silver-xlt: #f2f2f2;
+    --green:      #92d050;
+    --green-lt:   #eaf6d6;
+    --green-dark: #5a8a1a;
+    --orange:     #ee5523;
+    --orange-lt:  #fdeee8;
+    --yellow:     #e99006;
+    --yellow-lt:  #fef3dc;
+    --red:        #c0392b;
+    --red-lt:     #fdecea;
+    --purple:     #6B3FA0;
+    --purple-lt:  #F0EBF8;
+    --white:      #FFFFFF;
+    --offwhite:   #f7f7f7;
+    --text:       #1a2a38;
+    --text-mid:   #2d4a60;
+    --text-lt:    #5a7a90;
+    --text-xlt:   #8fa8bb;
+    --border:     #d0dde6;
+    --sh-sm: 0 1px 6px rgba(27,117,187,.10);
+    --sh:    0 3px 14px rgba(27,117,187,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:Arial,sans-serif;background:var(--offwhite);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+
+  /* HEADER */
+  .hdr{background:#fff;border-bottom:3px solid var(--blue);padding:0 16px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(27,117,187,.12)}
+  .hdr-in{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .hdr-brand{display:flex;align-items:center;gap:10px}
+  .hdr-divider{width:1px;height:28px;background:var(--border);flex-shrink:0}
+  .hdr-island-badge{background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid));color:#fff;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:5px}
+  .hdr-sub{font-size:10px;color:var(--text-xlt);font-weight:600;letter-spacing:.3px;text-transform:uppercase;margin-top:1px}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;padding:9px 18px;border-radius:20px;font-size:12px;font-weight:600;opacity:0;transition:all .3s;z-index:2000;pointer-events:none;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* TAB NAV */
+  .tab-nav{background:#fff;border-bottom:1px solid var(--border);padding:0 4px;overflow-x:auto;scrollbar-width:none;position:sticky;top:62px;z-index:100}
+  .tab-nav::-webkit-scrollbar{display:none}
+  .tabs{display:flex;min-width:max-content}
+  .tab{flex:1;min-width:68px;padding:10px 8px 8px;text-align:center;cursor:pointer;border:none;border-bottom:3px solid transparent;background:none;transition:all .2s}
+  .tab .t-ico{font-size:16px;margin-bottom:2px}
+  .tab .t-lbl{font-size:10px;font-weight:700;color:var(--text-xlt);text-transform:uppercase;letter-spacing:.3px;transition:all .2s}
+  .tab.active{border-bottom-color:var(--blue)}
+  .tab.active .t-lbl{color:var(--blue)}
+
+  /* MAIN */
+  .main{padding:0 0 80px;max-width:640px;margin:0 auto}
+  .panel{display:none;animation:fadeUp .22s ease}
+  .panel.active{display:block}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  /* CARDS */
+  .card{background:#fff;margin:14px 12px 0;border-radius:12px;box-shadow:var(--sh-sm);border:1px solid var(--border);overflow:hidden}
+  .card-hdr{padding:13px 16px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--silver-xlt);background:linear-gradient(to right,var(--blue-xlt),#fff)}
+  .card-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:#fff;border:1.5px solid var(--silver-lt);box-shadow:var(--sh-sm)}
+  .card-title{font-size:13px;font-weight:700;color:var(--blue-dark)}
+  .card-sub{font-size:11px;color:var(--text-lt);margin-top:1px}
+  .card-body{padding:14px 14px 18px}
+
+  /* LABELS / FIELDS */
+  .lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-mid);margin-bottom:5px;display:flex;align-items:center;gap:4px}
+  .field{margin-bottom:13px}
+  .field:last-child{margin-bottom:0}
+  .inp{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:Arial,sans-serif;font-size:14px;color:var(--text);background:var(--offwhite);transition:border-color .18s,box-shadow .18s,background .18s;-webkit-appearance:none;appearance:none}
+  .inp:focus{outline:none;border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(27,117,187,.10)}
+  textarea.inp{resize:vertical;min-height:72px;line-height:1.5}
+  select.inp{cursor:pointer}
+
+  /* SECTION DIVIDERS */
+  .sec-label{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--text-xlt);margin:18px 0 8px;padding:0 2px}
+  .divider{height:1px;background:var(--silver-xlt);margin:14px 0}
+
+  /* BADGES */
+  .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.3px}
+  .badge-blue{background:var(--blue-light);color:var(--blue-dark)}
+  .badge-green{background:var(--green-lt);color:var(--green-dark)}
+  .badge-orange{background:var(--orange-lt);color:#7a2a00}
+  .badge-red{background:var(--red-lt);color:var(--red)}
+  .badge-gray{background:var(--silver-xlt);color:var(--text-lt)}
+  .badge-teal{background:var(--teal-lt);color:#00607A}
+  .badge-purple{background:var(--purple-lt);color:var(--purple)}
+  .badge-yellow{background:var(--yellow-lt);color:#7a4a00}
+
+  /* BUTTONS */
+  .btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .btn{padding:10px 16px;border-radius:9px;font-family:Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:all .18s;letter-spacing:.2px;touch-action:manipulation}
+  .btn-primary{background:var(--blue);color:#fff;box-shadow:0 3px 12px rgba(27,117,187,.28)}
+  .btn-primary:hover{background:var(--blue-mid)}
+  .btn-secondary{background:var(--offwhite);color:var(--text-lt);border:1.5px solid var(--border)}
+  .btn-secondary:hover{border-color:var(--blue);color:var(--blue)}
+  .btn-green{background:var(--green);color:#fff;box-shadow:0 3px 12px rgba(92,208,80,.28)}
+  .btn-sm{padding:6px 12px;font-size:11px;border-radius:7px}
+  .btn-full{width:100%}
+  .btn:active{transform:scale(.97)}
+
+  /* INFO BOXES */
+  .info-box{background:var(--blue-xlt);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:10px 12px;font-size:12px;color:var(--blue-dark);line-height:1.5;margin-bottom:12px}
+  .warn-box{background:var(--orange-lt);border-left:3px solid var(--orange);border-radius:0 8px 8px 0;padding:10px 12px;font-size:12px;color:#7a2a00;line-height:1.5}
+  .success-box{background:var(--green-lt);border-left:3px solid var(--green);border-radius:0 8px 8px 0;padding:10px 12px;font-size:12px;color:var(--green-dark);line-height:1.5}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .stat-cell{background:#fff;border-radius:10px;padding:13px 12px;text-align:center;border:1px solid var(--border)}
+  .stat-val{font-size:22px;font-weight:900;color:var(--blue);letter-spacing:-.5px}
+  .stat-lbl{font-size:10px;font-weight:700;color:var(--text-xlt);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+  .stat-val.green{color:var(--green-dark)}
+  .stat-val.orange{color:var(--orange)}
+  .stat-val.red{color:var(--red)}
+
+  /* FILTER CHIPS */
+  .filter-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .chip{padding:5px 12px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--text-lt);transition:all .15s;touch-action:manipulation}
+  .chip.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+  /* AGENDA */
+  .agenda-section{margin-bottom:16px}
+  .agenda-section-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:8px;margin-bottom:8px}
+  .agenda-section-hdr.standing{background:linear-gradient(to right,var(--silver-xlt),#fff);border:1px solid var(--border)}
+  .agenda-section-hdr.regular{background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid))}
+  .agenda-section-name{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+  .agenda-section-hdr.standing .agenda-section-name{color:var(--text-mid)}
+  .agenda-section-hdr.regular .agenda-section-name{color:#fff}
+  .agenda-section-time{font-size:10px;font-weight:600}
+  .agenda-section-hdr.standing .agenda-section-time{color:var(--text-xlt)}
+  .agenda-section-hdr.regular .agenda-section-time{color:rgba(255,255,255,.7)}
+  .agenda-item{background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;transition:all .18s}
+  .agenda-item:hover{border-color:var(--blue);box-shadow:var(--sh-sm)}
+  .agenda-item.has-presenter{border-left:3px solid var(--blue)}
+  .agenda-item.standing-item{border-left:3px solid var(--silver);cursor:default;background:var(--silver-xlt)}
+  .agenda-item.standing-item:hover{border-color:var(--border);box-shadow:none}
+  .agenda-item-left{flex:1}
+  .agenda-item-topic{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+  .agenda-item-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .agenda-item-presenter{font-size:11px;color:var(--text-lt)}
+  .agenda-item-dur{font-size:10px;font-weight:700;color:var(--teal);background:var(--teal-lt);padding:1px 7px;border-radius:5px;white-space:nowrap}
+  .agenda-add-btn{width:100%;padding:10px;border:1.5px dashed var(--border);border-radius:9px;background:transparent;color:var(--text-xlt);font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all .18s}
+  .agenda-add-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-xlt)}
+
+  /* ACTION ITEMS */
+  .action-item{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:9px;transition:all .18s}
+  .action-item:hover{box-shadow:var(--sh-sm)}
+  .action-item.status-done{opacity:.6}
+  .action-item.priority-urgent{border-left:4px solid #e03e2d}
+  .action-item.priority-high{border-left:4px solid var(--orange)}
+  .action-item.priority-normal{border-left:4px solid var(--green)}
+  .action-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .action-task{font-size:13px;font-weight:600;color:var(--text);flex:1;line-height:1.4}
+  .action-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .action-owner{font-size:11px;color:var(--text-lt);display:flex;align-items:center;gap:4px}
+  .action-due{font-size:10.5px;font-weight:600;color:var(--text-xlt)}
+  .action-due.overdue{color:var(--red)}
+  .status-select{padding:6px 10px;border-radius:7px;border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:var(--offwhite);color:var(--text-mid);-webkit-appearance:none;appearance:none;font-family:Arial,sans-serif}
+
+  /* DECISION LOG */
+  .decision-item{background:#fff;border:1.5px solid var(--border);border-left:3px solid var(--purple);border-radius:10px;padding:12px 14px;margin-bottom:9px;transition:all .18s}
+  .decision-item:hover{box-shadow:var(--sh-sm)}
+  .decision-text{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.4}
+  .decision-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .decision-date{font-size:10.5px;color:var(--text-xlt);font-weight:600}
+
+  /* RUN OF SHOW */
+  .timer-bar{background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid));padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-radius:10px;margin-bottom:14px}
+  .timer-display{font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px}
+  .timer-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+  .timer-controls{display:flex;gap:6px}
+  .timer-btn{padding:6px 14px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;transition:all .15s;font-family:Arial,sans-serif}
+  .timer-btn:hover{background:rgba(255,255,255,.22)}
+  .ros-item{background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;gap:12px;transition:all .15s}
+  .ros-item.current{border-color:var(--blue);background:var(--blue-xlt);box-shadow:0 0 0 3px rgba(27,117,187,.1)}
+  .ros-item.done{opacity:.45}
+  .ros-time{font-size:12px;font-weight:700;color:var(--text-lt);min-width:50px}
+  .ros-topic{flex:1;font-size:13px;font-weight:600;color:var(--text)}
+  .ros-presenter{font-size:11px;color:var(--text-xlt);margin-top:1px}
+  .ros-dur{font-size:10px;font-weight:700;color:var(--teal);white-space:nowrap}
+  .ros-check{width:18px;height:18px;accent-color:var(--blue);flex-shrink:0;cursor:pointer;margin-right:2px}
+  .ros-topic-done{text-decoration:line-through;color:var(--text-xlt)}
+  .ros-item.current .ros-time{color:var(--blue)}
+  .ros-item.current .ros-topic{color:var(--blue-dark)}
+
+  /* TRANSCRIPT */
+  .upload-zone{border:2px dashed var(--border);border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--offwhite)}
+  .upload-zone:hover,.upload-zone.drag{border-color:var(--blue);background:var(--blue-xlt)}
+  .upload-zone-ico{font-size:36px;margin-bottom:8px}
+  .upload-zone-title{font-size:13px;font-weight:700;color:var(--text-mid);margin-bottom:4px}
+  .upload-zone-sub{font-size:11px;color:var(--text-xlt)}
+  .transcript-preview{background:var(--offwhite);border-radius:9px;padding:12px;max-height:160px;overflow-y:auto;font-size:11.5px;color:var(--text-lt);line-height:1.6;white-space:pre-wrap;border:1px solid var(--border);margin-top:10px}
+  .extract-card{background:linear-gradient(135deg,var(--blue-xlt),#fff);border:1.5px solid var(--silver-lt);border-radius:11px;padding:14px;margin-top:12px}
+  .extract-hdr{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .extract-title{font-size:12px;font-weight:800;color:var(--blue-dark)}
+  .extract-item{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:flex-start;gap:10px}
+  .extract-item:last-child{margin-bottom:0}
+  .extract-check{width:16px;height:16px;accent-color:var(--blue);flex-shrink:0;margin-top:2px;cursor:pointer}
+  .extract-text{font-size:12px;color:var(--text);flex:1}
+
+  /* EMAIL */
+  .email-template{background:#fff;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px}
+  .email-hdr-bar{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--offwhite)}
+  .email-type{font-size:11px;font-weight:700;color:var(--text-mid)}
+  .email-body-preview{padding:12px 14px;font-size:12px;color:var(--text-lt);line-height:1.6;max-height:140px;overflow-y:auto}
+  .email-actions{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px}
+
+  /* TYPEAHEAD */
+  .typeahead-wrap{position:relative}
+  .typeahead-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--blue);border-top:none;border-radius:0 0 9px 9px;box-shadow:var(--sh);z-index:500;display:none;overflow:hidden}
+  .typeahead-list.open{display:block}
+  .typeahead-item{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;transition:background .12s}
+  .typeahead-item:hover{background:var(--blue-xlt)}
+  .typeahead-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0}
+  .typeahead-name{font-size:13px;font-weight:600;color:var(--text)}
+  .typeahead-role{font-size:11px;color:var(--text-xlt)}
+
+  /* AI LOADING */
+  .ai-thinking{display:flex;align-items:center;gap:8px;padding:12px;background:var(--blue-xlt);border-radius:9px;margin-top:10px}
+  .ai-dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--blue);animation:dot-bounce .9s infinite both}
+  .ai-dots span:nth-child(2){animation-delay:.15s}
+  .ai-dots span:nth-child(3){animation-delay:.3s}
+  @keyframes dot-bounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+  .ai-text{font-size:12px;color:var(--blue-dark);font-weight:600}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,30,60,.45);z-index:1000;display:none;align-items:flex-end;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal{background:#fff;border-radius:16px 16px 0 0;padding:20px 18px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;animation:slideUp .25s ease}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .modal-title{font-size:15px;font-weight:800;color:var(--text)}
+  .modal-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--silver-xlt);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text-lt);flex-shrink:0}
+
+  /* EMPTY STATE */
+  .empty-state{text-align:center;padding:40px 20px;color:var(--text-xlt)}
+  .empty-state-ico{font-size:40px;margin-bottom:10px}
+  .empty-state-title{font-size:13px;font-weight:700;margin-bottom:4px;color:var(--text-lt)}
+  .empty-state-sub{font-size:12px}
+
+  .hidden{display:none!important}
+  .mt8{margin-top:8px}
+  .mt12{margin-top:12px}
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--silver-lt);border-radius:2px}
+
+  /* ── DESKTOP ENHANCEMENTS ── */
+  @media (min-width:640px) {
+    .main{max-width:720px}
+    .card{margin:16px 16px 0}
+    .ros-item{padding:14px 16px;margin-bottom:8px}
+    .ros-item.current{padding:16px;border-width:2px}
+    .ros-topic{font-size:15px}
+    .ros-time{font-size:13px;min-width:60px}
+    .ros-dur{font-size:12px}
+    .ros-check{width:22px;height:22px}
+    .action-item{padding:14px 16px;margin-bottom:10px}
+    .action-task{font-size:14px}
+    .stats-row{gap:14px;margin-bottom:16px}
+    .stat-val{font-size:28px}
+    .stat-cell{padding:16px}
+    .tab .t-lbl{font-size:11px}
+    .tab{min-width:80px;padding:12px 10px 9px}
+    .tab .t-ico{font-size:18px}
+  }
+
+  /* ── RUN OF SHOW — done items collapse ── */
+  .ros-item.done{padding-top:7px;padding-bottom:7px;margin-bottom:4px}
+  .ros-item.done .ros-presenter{display:none}
+  .ros-item.done .ros-topic{font-size:11px}
+  .ros-item.done .ros-time{font-size:11px}
+  .ros-item.done .ros-dur{font-size:9px}
+
+  /* ── RUN OF SHOW — current item hero ── */
+  .ros-item.current{
+    padding:16px 18px;
+    border-width:2px;
+    border-color:var(--blue);
+    background:var(--blue-xlt);
+    box-shadow:0 4px 20px rgba(27,117,187,.15);
+    margin-bottom:10px;
+  }
+  .ros-item.current .ros-topic{font-size:15px;font-weight:800;color:var(--blue-dark)}
+  .ros-item.current .ros-time{font-size:13px;font-weight:800;color:var(--blue)}
+  .ros-item.current .ros-dur{font-size:12px;padding:2px 10px}
+  .qsb-done:hover{background:var(--green);color:#fff}
+
+  /* ── ACTION ITEMS — tap-friendly on mobile ── */
+  .status-select{padding:8px 10px;font-size:13px;min-height:40px}
+  @media(min-width:640px){
+    .status-select{padding:6px 10px;font-size:12px;min-height:auto}
+  }
+
+  /* ── MOBILE TAB — icons only on very small screens ── */
+  @media(max-width:380px){
+    .tab .t-lbl{display:none}
+    .tab{min-width:48px;padding:10px 6px 8px}
+    .tab .t-ico{font-size:18px;margin-bottom:0}
+  }
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-in">
+    <div class="hdr-brand">
+      <img src="data:image/jpeg;base64,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" alt="Moleaer" style="height:26px;display:block;mix-blend-mode:multiply;flex-shrink:0">
+      <div class="hdr-divider"></div>
+      <div>
+        <div class="hdr-island-badge">&#127965;&#65039; Misfit Island</div>
+        <div class="hdr-sub">Water Process Hub &middot; Monday Call</div>
+      </div>
+    </div>
+
+    <div id="syncStatus" style="font-size:10px;font-weight:700;color:var(--text-xlt);font-family:Arial,sans-serif;display:flex;align-items:center;gap:4px"></div>
+  </div>
+</header>
+
+<nav class="tab-nav">
+  <div class="tabs">
+    <button class="tab active" onclick="showPanel('agenda')" id="tab-agenda"><div class="t-ico">&#128203;</div><div class="t-lbl">Agenda</div></button>
+    <button class="tab" onclick="showPanel('actions')" id="tab-actions"><div class="t-ico">&#9989;</div><div class="t-lbl">Actions</div></button>
+    <button class="tab" onclick="showPanel('runofshow')" id="tab-runofshow"><div class="t-ico">&#127897;&#65039;</div><div class="t-lbl">Run of Show</div></button>
+    <button class="tab" onclick="showPanel('email')" id="tab-email"><div class="t-ico">&#9993;&#65039;</div><div class="t-lbl">Email</div></button>
+    <button class="tab" onclick="showPanel('transcript')" id="tab-transcript"><div class="t-ico">&#128196;</div><div class="t-lbl">Transcript</div></button>
+    <button class="tab" onclick="showPanel('decisions')" id="tab-decisions"><div class="t-ico">&#127919;</div><div class="t-lbl">Decisions</div></button>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- AGENDA -->
+  <div class="panel active" id="panel-agenda">
+
+    <div class="card" style="margin-top:8px">
+      <div class="card-hdr">
+        <div class="card-ico">&#128203;</div>
+        <div><div class="card-title">Agenda Builder</div><div class="card-sub">Add topics for this week &mdash; standing items run automatically at the start of every call</div></div>
+      </div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div class="field" style="margin-bottom:0">
+            <div class="lbl">Call Date</div>
+            <input type="date" class="inp" id="meetingDate"
+              onchange="localStorage.setItem('mi_meetingDate',this.value); saveSetting('meetingDate',this.value); renderEmailTemplates()"
+              oninput="if(!canEditDateTime()) { this.value = localStorage.getItem('mi_meetingDate')||''; return false; }">
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <div class="lbl">Start Time <span style="font-weight:400;color:var(--text-xlt)">(Pacific)</span></div>
+            <input type="time" class="inp" id="meetingTime" value="07:30"
+              onchange="localStorage.setItem('mi_meetingTime',this.value); saveSetting('meetingTime',this.value); renderROS(); renderEmailTemplates()"
+              oninput="if(!canEditDateTime()) { this.value = localStorage.getItem('mi_meetingTime')||'07:30'; return false; }">
+          </div>
+        </div>
+        <div id="dateTimeLockedMsg" style="display:none;font-size:11px;color:var(--text-xlt);margin:-8px 0 10px;text-align:center">&#128274; Date &amp; time set by Baji, Andrea, or Cesar</div>
+        <div class="btn-row" style="margin-bottom:14px">
+          <button class="btn btn-primary" onclick="openAddAgendaItem()" style="flex:1">+ Add Agenda Item</button>
+          <button class="btn btn-secondary" onclick="openAISuggest()">&#10024; AI Suggest</button>
+          <button class="btn btn-secondary" onclick="emailAgenda()">&#128228; Email</button>
+        </div>
+        <div id="agendaSections"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="panel" id="panel-actions">
+    <div style="font-size:12px;color:var(--text-mid);text-align:center;padding:8px 0 2px;letter-spacing:.01em"><span style="font-weight:700;color:var(--blue)">Action Items</span> &mdash; tasks assigned to team members, reviewed every call</div>
+    <div class="card" style="margin-top:8px">
+      <div class="card-body" style="padding-bottom:12px">
+        <button class="btn btn-primary btn-full" onclick="openAddAction()" style="margin-bottom:12px">+ Add Action Item</button>
+        <div class="stats-row" id="actionStats"></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:11px;font-weight:700;color:var(--text-xlt);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Status</span>
+          <div class="filter-chips" id="filterChips" style="margin:0">
+          <button class="chip active" onclick="filterActions('all',this)">All</button>
+          <button class="chip" onclick="filterActions('In Progress',this)">In Progress</button>
+          <button class="chip" onclick="filterActions('On Hold',this)">On Hold</button>
+          <button class="chip" onclick="filterActions('Delayed',this)">Delayed</button>
+          <button class="chip" onclick="filterActions('Done',this)">Done</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
+          <span style="font-size:11px;font-weight:700;color:var(--text-xlt);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Priority</span>
+          <div class="filter-chips" id="priorityChips" style="margin:0">
+          <button class="chip active" onclick="filterActionPriority('all',this)">All</button>
+          <button class="chip" onclick="filterActionPriority('Urgent',this)" style="border-color:#e03e2d;color:#e03e2d">🚨 Urgent</button>
+          <button class="chip" onclick="filterActionPriority('High',this)" style="border-color:var(--orange);color:var(--orange)">🟠 High</button>
+          <button class="chip" onclick="filterActionPriority('Normal',this)" style="border-color:var(--green);color:var(--green)">🟢 Normal</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;margin-top:8px;margin-bottom:4px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:11px;font-weight:700;color:var(--text-xlt);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Person</label>
+            <select id="actionPersonFilter" class="inp" style="font-size:13px;padding:4px 8px;height:auto;width:auto;min-width:90px;max-width:160px" onchange="filterActionPerson(this.value)">
+              <option value="all">Everyone</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:11px;font-weight:700;color:var(--text-xlt);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Section</label>
+            <select id="actionSectionFilter" class="inp" style="font-size:13px;padding:4px 8px;height:auto;width:auto;min-width:90px;max-width:180px" onchange="filterActionSection(this.value)">
+              <option value="all">All</option>
+              <option value="Commercial">Commercial</option>
+              <option value="Product Development">Product Dev</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Conferences">Conferences</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div id="actionsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DECISIONS -->
+  <div class="panel" id="panel-decisions">
+    <div class="card" style="margin-top:14px">
+      <div class="card-hdr">
+        <div class="card-ico">&#127919;</div>
+        <div><div class="card-title">Decision Log</div><div class="card-sub">Key decisions made on calls &mdash; auto-populated from transcript analysis</div></div>
+      </div>
+      <div class="card-body">
+        <button class="btn btn-primary btn-full" onclick="openAddDecision()" style="margin-bottom:12px">+ Log Decision</button>
+        <div class="filter-chips" id="decisionFilterChips">
+          <button class="chip active" onclick="filterDecisions('all',this)">All</button>
+          <button class="chip" onclick="filterDecisions('Commercial',this)">Commercial</button>
+          <button class="chip" onclick="filterDecisions('Product Development',this)">Product Dev</button>
+          <button class="chip" onclick="filterDecisions('Marketing',this)">Marketing</button>
+          <button class="chip" onclick="filterDecisions('Conferences',this)">Conferences</button>
+          <button class="chip" onclick="filterDecisions('Other',this)">Other</button>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+          <label style="font-size:11px;font-weight:700;color:var(--text-xlt);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Person</label>
+          <select id="decisionPersonFilter" class="inp" style="font-size:13px;padding:4px 8px;height:auto;width:auto;min-width:90px;max-width:160px" onchange="filterDecisionPerson(this.value)">
+            <option value="all">Everyone</option>
+          </select>
+        </div>
+        <div id="decisionsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RUN OF SHOW -->
+  <div class="panel" id="panel-runofshow">
+    <div class="card" style="margin-top:8px">
+      <div class="card-hdr">
+        <div class="card-ico">&#127897;&#65039;</div>
+        <div style="flex:1">
+          <div class="card-title">Run of Show <span style="font-size:10px;font-weight:600;color:var(--text-xlt);background:var(--border);border-radius:4px;padding:2px 6px;margin-left:4px;letter-spacing:.02em">READ ONLY</span> <span style="font-size:10px;font-weight:400;color:var(--text-xlt);margin-left:2px">auto-generated from your agenda</span></div>
+          <div class="card-sub" id="rosMeetingInfo">Check off each item as it's completed</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="rosCompleted=new Set();renderROS()">&#8635; Reset</button>
+      </div>
+      <div class="card-body">
+        <div id="rosContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSCRIPT -->
+  <div class="panel" id="panel-transcript">
+    <div class="card" style="margin-top:14px">
+      <div class="card-hdr">
+        <div class="card-ico">&#128196;</div>
+        <div><div class="card-title">Transcript Analysis</div><div class="card-sub">Upload a Teams transcript &mdash; Claude extracts actions, decisions &amp; speakers</div></div>
+      </div>
+      <div class="card-body">
+        <!-- Find from Teams -->
+        <div style="background:var(--offwhite);border:1.5px solid var(--border-lt);border-radius:11px;padding:14px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="font-size:22px">&#128197;</div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--blue-dark)">Get Transcript from Teams</div>
+              <div style="font-size:11px;color:var(--text-lt);margin-top:1px">Open Teams Calendar &rarr; find Misfit Island Reloaded &rarr; Recap tab &rarr; Transcript &rarr; Download</div>
+            </div>
+          </div>
+          <a href="https://teams.microsoft.com/_#/calendarv2" target="_blank" class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none">&#128197; Open Teams Calendar</a>
+          <div style="margin-top:8px;font-size:11px;color:var(--text-xlt)">Download as .vtt for best results &mdash; .docx also works</div>
+        </div>
+
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+          <div class="upload-zone-ico">&#128193;</div>
+          <div class="upload-zone-title">Upload Teams Transcript</div>
+          <div class="upload-zone-sub">Drag &amp; drop or tap to browse &middot; .vtt, .txt or .docx</div>
+        </div>
+        <input type="file" id="fileInput" accept=".txt,.docx,.vtt" class="hidden" onchange="handleFileUpload(event)">
+        <div id="transcriptPreviewWrap" class="hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 6px">
+            <span class="lbl" style="margin-bottom:0">Preview</span>
+            <button class="btn btn-secondary btn-sm" onclick="clearTranscript()">&#x2715; Clear</button>
+          </div>
+          <div class="transcript-preview" id="transcriptPreview"></div>
+          <div class="btn-row"><button class="btn btn-primary" onclick="analyzeTranscript()">&#10024; Analyze with AI</button></div>
+        </div>
+        <div id="aiThinking" class="hidden">
+          <div class="ai-thinking"><div class="ai-dots"><span></span><span></span><span></span></div><div class="ai-text">Claude is reading the transcript&hellip;</div></div>
+        </div>
+        <div id="extractResults" class="hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMAIL -->
+  <div class="panel" id="panel-email">
+    <div class="card" style="margin-top:14px">
+      <div class="card-hdr">
+        <div class="card-ico">&#9993;&#65039;</div>
+        <div><div class="card-title">Email Templates</div><div class="card-sub">Pre-populated from agenda and action items &middot; opens in Outlook</div></div>
+      </div>
+      <div class="card-body" id="emailTemplates"></div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<div class="toast" id="toast"></div>
+
+
+
+<!-- MODAL: Add/Edit Agenda Item -->
+<div class="modal-overlay" id="modal-agenda-item">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="agendaModalTitle">Add Agenda Item</div>
+      <button class="modal-close" onclick="closeModal('modal-agenda-item')">&#x2715;</button>
+    </div>
+    <div class="field"><div class="lbl">Topic</div><input type="text" class="inp" id="ai-topic" placeholder="e.g. Q3 trial results at Site X"></div>
+    <div class="field">
+      <div class="lbl">Presenter</div>
+      <div class="typeahead-wrap">
+        <input type="text" class="inp" id="ai-presenter" placeholder="Type a name&hellip;" autocomplete="off" oninput="filterSuggestions(this,'presenterSuggestions')" onblur="hideSuggestions('presenterSuggestions')">
+        <div class="typeahead-list" id="presenterSuggestions"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field" style="margin-bottom:0"><div class="lbl">Duration (min)</div><input type="number" class="inp" id="ai-duration" placeholder="5" min="1" max="60"></div>
+      <div class="field" style="margin-bottom:0"><div class="lbl">Section</div>
+        <select class="inp" id="ai-section">
+          <option value="Commercial">Commercial</option>
+          <option value="Product Development">Product Development</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Conferences">Conferences</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="field mt8"><div class="lbl">Notes (optional)</div><textarea class="inp" id="ai-notes" placeholder="Background, links, pre-reading&hellip;"></textarea></div>
+    <div class="btn-row"><button class="btn btn-primary btn-full" id="agendaModalSaveBtn" onclick="saveAgendaItem()">Add to Agenda</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Add Action Item -->
+<div class="modal-overlay" id="modal-action">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Add Action Item</div>
+      <button class="modal-close" onclick="closeModal('modal-action')">&#x2715;</button>
+    </div>
+    <div class="field"><div class="lbl">Task</div><textarea class="inp" id="action-task" placeholder="What needs to be done?"></textarea></div>
+    <div class="field">
+      <div class="lbl">Owner</div>
+      <div class="typeahead-wrap">
+        <input type="text" class="inp" id="action-owner" placeholder="Type a name&hellip;" autocomplete="off" oninput="filterSuggestions(this,'ownerSuggestions')" onblur="hideSuggestions('ownerSuggestions')">
+        <div class="typeahead-list" id="ownerSuggestions"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field" style="margin-bottom:0"><div class="lbl">Due Date</div><input type="date" class="inp" id="action-due"></div>
+      <div class="field" style="margin-bottom:0"><div class="lbl">Section</div>
+        <select class="inp" id="action-section">
+          <option>Commercial</option><option>Product Development</option><option>Marketing</option><option>Conferences</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <div class="field" style="margin-bottom:0"><div class="lbl">Status</div>
+        <select class="inp" id="action-status">
+          <option value="In Progress">In Progress</option>
+          <option value="On Hold">On Hold</option>
+          <option value="Delayed">Delayed</option>
+          <option value="Done">Done</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:0"><div class="lbl">Priority</div>
+        <select class="inp" id="action-priority">
+          <option value="Normal" selected>Normal</option>
+          <option value="High">High</option>
+          <option value="Urgent">Urgent</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn btn-primary btn-full" onclick="saveAction()">Save Action Item</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Add Decision -->
+<div class="modal-overlay" id="modal-decision">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Log Decision</div>
+      <button class="modal-close" onclick="closeModal('modal-decision')">&#x2715;</button>
+    </div>
+    <div class="field"><div class="lbl">Decision</div><textarea class="inp" id="decision-text" placeholder="What was decided?"></textarea></div>
+    <div class="field">
+      <div class="lbl">Decision Maker (optional)</div>
+      <div class="typeahead-wrap">
+        <input type="text" class="inp" id="decision-maker" placeholder="Type a name&hellip;" autocomplete="off" oninput="filterSuggestions(this,'decisionMakerSuggestions')" onblur="hideSuggestions('decisionMakerSuggestions')">
+        <div class="typeahead-list" id="decisionMakerSuggestions"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field" style="margin-bottom:0"><div class="lbl">Section</div>
+        <select class="inp" id="decision-section">
+          <option>Commercial</option><option>Product Development</option><option>Marketing</option><option>Conferences</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:0"><div class="lbl">Date</div><input type="date" class="inp" id="decision-date"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-primary btn-full" onclick="saveDecision()">Save Decision</button></div>
+  </div>
+</div>
+
+<!-- MODAL: AI Suggest -->
+<div class="modal-overlay" id="modal-ai-suggest">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">&#10024; AI Agenda Suggestions</div>
+      <button class="modal-close" onclick="closeModal('modal-ai-suggest')">&#x2715;</button>
+    </div>
+    <div class="field"><div class="lbl">What&apos;s happening this week? (optional)</div><textarea class="inp" id="ai-context-input" placeholder="e.g. Site visit results coming in, new conference abstract due&hellip;"></textarea></div>
+    <div class="btn-row"><button class="btn btn-primary btn-full" onclick="runAISuggest()">Generate Suggestions</button></div>
+    <div id="aiSuggestLoading" class="hidden"><div class="ai-thinking mt8"><div class="ai-dots"><span></span><span></span><span></span></div><div class="ai-text">Generating ideas&hellip;</div></div></div>
+    <div id="aiSuggestResults" class="hidden mt8"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// TEAM
+// ═══════════════════════════════════════
+const SECTIONS = ['Commercial','Product Development','Marketing','Conferences','Other'];
+
+const TEAM_MEMBERS = [
+  {name:'Baji',    initials:'BG', role:'Team Lead · Corporate Accounts',          group:'required', color:'#134f82'},
+  {name:'Cesar',   initials:'CH', role:'Water Process Engineer · Technical Sales', group:'required', color:'#1b75bb'},
+  {name:'Andrea',  initials:'AW', role:'Water Process Engineer · Technical Sales', group:'required', color:'#1b75bb'},
+  {name:'Cody',    initials:'CR', role:'BDM · Sales',                              group:'required', color:'#2d8fd4'},
+  {name:'John',    initials:'JC', role:'Water Process Engineer · Technical Sales', group:'required', color:'#1b75bb'},
+  {name:'Sarah',   initials:'SB', role:'BDM · Dewatering Polymer',                group:'required', color:'#2d8fd4'},
+  {name:'Riley',   initials:'RM', role:'Water Process Engineer · Technical Sales', group:'required', color:'#1b75bb'},
+  {name:'Christian',initials:'CF',role:'New Product Development Lead',             group:'optional', color:'#6B3FA0'},
+  {name:'Rachel',  initials:'RH', role:'Marketing',                               group:'optional', color:'#4ea8c0'},
+  {name:'Jenn',    initials:'JF', role:'AI & Workflow Efficiency · HubSpot',      group:'optional', color:'#4ea8c0'},
+  {name:'Patrick', initials:'PR', role:'BDM · Industrial Sales',                  group:'optional', color:'#2d8fd4'},
+  {name:'Sam',     initials:'SL', role:'Workflow Efficiency',                     group:'optional', color:'#8fa8bb'},
+];
+
+const TEAM_CONTEXT = `Team members on this call:
+- Baji Gobburi: Team Lead, corporate accounts, hosts the call
+- Cesar Herrera, Andrea White, John Crisman, Riley Murnane: Water Process Engineers, also handle technical sales
+- Cody Ray, Sarah Ben-Yoseph (dewatering polymer), Patrick Ryan (industrial): BDMs/salespeople
+- Christian Ference: New product development lead
+- Rachel Hollis: Marketing
+- Jenn Fisher: AI & workflow efficiency, HubSpot
+- Sam Lilly: Workflow efficiency`;
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let agendaItems = [
+  {id:1, section:'Commercial',          topic:'Pipeline Review — Active Accounts', presenter:'Baji',  duration:10, notes:''},
+  {id:2, section:'Product Development', topic:'NB System Updates',                 presenter:'Christian', duration:5, notes:''},
+  {id:3, section:'Marketing',           topic:'Campaign & Content Status',         presenter:'Rachel',duration:5, notes:''},
+  {id:4, section:'Conferences',         topic:'Upcoming Events & Abstracts',       presenter:'',      duration:5, notes:''},
+];
+
+let actionItems = [
+  {id:1, task:'Submit abstract for WEFTEC', owner:'Baji', due:'2025-09-01', section:'Conferences', status:'In Progress', priority:'high', created:'2025-07-07'},
+  {id:2, task:'Follow up on polymer trial results — dewatering site', owner:'Sarah', due:'', section:'Commercial', status:'In Progress', priority:'normal', created:'2025-07-07'},
+  {id:3, task:'Update HubSpot pipeline for Q3 industrial accounts', owner:'Patrick', due:'', section:'Commercial', status:'On Hold', priority:'normal', created:'2025-07-07'},
+];
+
+let decisions = [];
+
+let nextAgendaId = 10, nextActionId = 10, nextDecisionId = 1;
+let currentFilter = 'all', currentDecisionFilter = 'all';
+let actionPersonFilter = 'all';
+let actionPriorityFilter = 'all';
+let actionSectionFilter = 'all';
+let decisionPersonFilter = 'all';
+let editingAgendaItem = null;
+let rosCurrentIdx = 0;
+let rosCompleted = new Set();
+let transcriptText = '';
+let settingsPageIds = {}; // stores Notion page IDs for settings records
+let transcriptMeetingDate = null;
+let nextMeetingData = null;
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+function init() {
+  // Restore saved meeting date/time, or default to today
+  const savedDate = localStorage.getItem('mi_meetingDate');
+  const savedTime = localStorage.getItem('mi_meetingTime');
+  document.getElementById('meetingDate').value = savedDate || new Date().toISOString().split('T')[0];
+  if (savedTime) document.getElementById('meetingTime').value = savedTime;
+  renderAgenda(); renderActions(); renderDecisions(); renderROS(); renderEmailTemplates();
+  if (currentUser) loadFromNotion();
+  applyDateTimeEditState();
+}
+
+function getNextMonday() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 1 ? 0 : (8 - day) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'runofshow') renderROS();
+  if (name === 'email') renderEmailTemplates();
+  if (name !== 'actions') selectedActionId = null;
+}
+
+function selectActionItem(id, el) {
+  selectedActionId = id;
+  document.querySelectorAll('.action-item').forEach(a => a.classList.remove('selected-action'));
+  el.classList.add('selected-action');
+}
+
+
+
+// ═══════════════════════════════════════
+// AGENDA
+// ═══════════════════════════════════════
+function renderAgenda() {
+  const container = document.getElementById('agendaSections');
+  container.innerHTML = '';
+  window._aid = []; // reset agenda id registry
+
+  // Standing: Action Item Review
+  const openCount = actionItems.filter(a => a.status !== 'Done').length;
+  const standingWrap = document.createElement('div');
+  standingWrap.className = 'agenda-section';
+  standingWrap.innerHTML = `
+    <div class="agenda-section-hdr standing">
+      <div class="agenda-section-name">&#128204; Standing — Action Item Review</div>
+      <div class="agenda-section-time">10 min</div>
+    </div>
+    <div class="agenda-item standing-item">
+      <div class="agenda-item-left">
+        <div class="agenda-item-topic">Review open action items</div>
+        <div class="agenda-item-meta">
+          <span class="badge badge-${openCount > 0 ? 'orange' : 'green'}">${openCount} open item${openCount !== 1 ? 's' : ''}</span>
+          <span style="font-size:11px;color:var(--text-xlt)">Go to Actions tab to update status before the call</span>
+        </div>
+      </div>
+      <div class="agenda-item-dur">10 min</div>
+    </div>
+  `;
+  container.appendChild(standingWrap);
+
+  // Regular sections
+  SECTIONS.forEach(section => {
+    const items = agendaItems.filter(i => i.section === section);
+    const totalMin = items.reduce((s,i) => s + (parseInt(i.duration)||0), 0);
+    const wrap = document.createElement('div');
+    wrap.className = 'agenda-section';
+    wrap.innerHTML = `
+      <div class="agenda-section-hdr regular">
+        <div class="agenda-section-name">${section}</div>
+        <div class="agenda-section-time">${totalMin} min</div>
+      </div>
+      <div id="sec-${section.replace(/\s+/g,'-')}">
+        ${items.length === 0 ? '<div style="font-size:12px;color:var(--text-xlt);padding:6px 4px">No items yet</div>' : items.map(item => agendaItemHTML(item)).join('')}
+      </div>
+    `;
+    container.appendChild(wrap);
+  });
+}
+
+function agendaItemHTML(item) {
+  if (!window._aid) window._aid = [];
+  const idx = window._aid.length;
+  window._aid.push(item.id);
+  const presenter = item.presenter
+    ? ('\u{1F464} ' + item.presenter)
+    : '<span style="color:var(--text-xlt)">\u{1F464} No presenter</span>';
+  const notes = item.notes ? '<span class="badge badge-teal">Notes</span>' : '';
+  const dur = (item.duration || '?') + ' min';
+  return [
+    '<div class="agenda-item ' + (item.presenter ? 'has-presenter' : '') + '">',
+    '<div class="agenda-item-left" onclick="openEditAgendaItem(window._aid[' + idx + '])" style="cursor:pointer;flex:1">',
+    '<div class="agenda-item-topic">' + (item.topic || '') + '</div>',
+    '<div class="agenda-item-meta">' + presenter + notes + '</div>',
+    '</div>',
+    '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">',
+    '<div class="agenda-item-dur">' + dur + '</div>',
+    '<button onclick="event.stopPropagation();deleteAgendaItem(window._aid[' + idx + '])" style="background:none;border:none;cursor:pointer;color:var(--text-xlt);font-size:13px;padding:2px 6px;line-height:1;border-radius:4px" title="Remove">\u2715</button>',
+    '</div></div>'
+  ].join('');
+}
+function openAddAgendaItem(section) {
+  editingAgendaItem = null;
+  document.getElementById('agendaModalTitle').textContent = 'Add Agenda Item';
+  document.getElementById('agendaModalSaveBtn').textContent = 'Add to Agenda';
+  document.getElementById('ai-topic').value = '';
+  document.getElementById('ai-presenter').value = '';
+  document.getElementById('ai-duration').value = '5';
+  document.getElementById('ai-notes').value = '';
+  document.getElementById('ai-section').value = section || 'Commercial';
+  document.getElementById('presenterSuggestions').classList.remove('open');
+  openModal('modal-agenda-item');
+}
+
+function openEditAgendaItem(id) {
+  const item = agendaItems.find(i => String(i.id) === String(id));
+  if (!item) return;
+  editingAgendaItem = id;
+  document.getElementById('agendaModalTitle').textContent = 'Edit Agenda Item';
+  document.getElementById('agendaModalSaveBtn').textContent = 'Save Changes';
+  document.getElementById('ai-topic').value = item.topic;
+  document.getElementById('ai-presenter').value = item.presenter;
+  document.getElementById('ai-duration').value = item.duration;
+  document.getElementById('ai-notes').value = item.notes;
+  document.getElementById('ai-section').value = item.section;
+  document.getElementById('presenterSuggestions').classList.remove('open');
+  openModal('modal-agenda-item');
+}
+
+function deleteAgendaItem(id) {
+  const item = agendaItems.find(i => String(i.id) === String(id));
+  const nid = item?.notionId || item?.id;
+  if (nid) {
+    deleteFromNotion(nid)
+      .then(() => console.log('Agenda item archived:', nid))
+      .catch(e => { console.error('Archive failed:', e); showToast('Could not remove from Notion'); });
+  }
+  agendaItems = agendaItems.filter(i => String(i.id) !== String(id));
+  renderAgenda(); renderROS();
+}
+
+function saveAgendaItem() {
+  const topic = document.getElementById('ai-topic').value.trim();
+  if (!topic) { document.getElementById('ai-topic').focus(); return; }
+  const item = {
+    topic,
+    presenter: document.getElementById('ai-presenter').value.trim(),
+    duration: parseInt(document.getElementById('ai-duration').value)||5,
+    notes: document.getElementById('ai-notes').value.trim(),
+    section: document.getElementById('ai-section').value,
+  };
+  if (editingAgendaItem) {
+    const idx = agendaItems.findIndex(i => i.id === editingAgendaItem);
+    agendaItems[idx] = {...agendaItems[idx], ...item};
+  } else {
+    item.id = nextAgendaId++;
+    agendaItems.push(item);
+  }
+  closeModal('modal-agenda-item');
+  renderAgenda(); renderROS();
+  // Sync to Notion in background
+  const weekOf = document.getElementById('meetingDate')?.value || getWeekOf();
+  if (editingAgendaItem) {
+    const saved = agendaItems.find(i => i.id === editingAgendaItem);
+    if (saved?.notionId) saveToNotion('agenda', { ...item, weekOf }, saved.notionId);
+  } else {
+    const newest = agendaItems[agendaItems.length - 1];
+    saveToNotion('agenda', { ...item, weekOf }).then(id => { if (id) newest.notionId = id; });
+  }
+}
+
+// ═══════════════════════════════════════
+// ACTION ITEMS
+// ═══════════════════════════════════════
+function canEditDateTime() {
+  return ['Baji', 'Andrea', 'Cesar'].includes(currentUser);
+}
+
+function applyDateTimeEditState() {
+  const canEdit = canEditDateTime();
+  const dateEl = document.getElementById('meetingDate');
+  const timeEl = document.getElementById('meetingTime');
+  const msg = document.getElementById('dateTimeLockedMsg');
+  if (dateEl) dateEl.readOnly = !canEdit;
+  if (timeEl) timeEl.readOnly = !canEdit;
+  if (dateEl) dateEl.style.opacity = canEdit ? '1' : '0.6';
+  if (timeEl) timeEl.style.opacity = canEdit ? '1' : '0.6';
+  if (dateEl) dateEl.style.cursor = canEdit ? '' : 'not-allowed';
+  if (timeEl) timeEl.style.cursor = canEdit ? '' : 'not-allowed';
+  if (msg) msg.style.display = canEdit ? 'none' : 'block';
+}
+
+function populateActionPersonChips() {
+  const owners = [...new Set(actionItems.map(a => a.owner).filter(Boolean))].sort();
+  const sel = document.getElementById('actionPersonFilter');
+  if (!sel) return;
+  const current = actionPersonFilter;
+  sel.innerHTML = '<option value="all">Everyone</option>'
+    + owners.map(o => '<option value="' + o + '"' + (current === o ? ' selected' : '') + '>' + o + '</option>').join('');
+  sel.value = current;
+}
+
+function filterActionPriority(priority, el) {
+  actionPriorityFilter = priority;
+  document.querySelectorAll('#priorityChips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderActions();
+}
+
+function filterActionSection(section) {
+  actionSectionFilter = section;
+  renderActions();
+}
+
+function filterActionPerson(person) {
+  actionPersonFilter = person;
+  renderActions();
+}
+
+function populateDecisionPersonChips() {
+  const makers = [...new Set(decisions.map(d => d.decisionMaker).filter(Boolean))].sort();
+  const sel = document.getElementById('decisionPersonFilter');
+  if (!sel) return;
+  const current = decisionPersonFilter;
+  sel.innerHTML = '<option value="all">Everyone</option>'
+    + makers.map(m => '<option value="' + m + '"' + (current === m ? ' selected' : '') + '>' + m + '</option>').join('');
+  sel.value = current;
+}
+
+function filterDecisionPerson(person) {
+  decisionPersonFilter = person;
+  renderDecisions();
+}
+
+
+function renderActionStats() {
+  const inProg = actionItems.filter(a => a.status === 'In Progress').length;
+  const onHold = actionItems.filter(a => a.status === 'On Hold' || a.status === 'Delayed').length;
+  const done   = actionItems.filter(a => a.status === 'Done').length;
+  const el = document.getElementById('actionStats');
+  if (el) el.innerHTML = `
+    <div class="stat-cell"><div class="stat-val orange">${inProg}</div><div class="stat-lbl">In Progress</div></div>
+    <div class="stat-cell"><div class="stat-val red">${onHold}</div><div class="stat-lbl">On Hold / Delayed</div></div>
+    <div class="stat-cell"><div class="stat-val green">${done}</div><div class="stat-lbl">Done</div></div>
+  `;
+}
+function renderActions() {
+  const container = document.getElementById('actionsList');
+  let filtered = currentFilter === 'all' ? [...actionItems] : actionItems.filter(a => a.status === currentFilter);
+  if (actionPersonFilter !== 'all') filtered = filtered.filter(a => a.owner === actionPersonFilter);
+  if (actionPriorityFilter !== 'all') filtered = filtered.filter(a => a.priority === actionPriorityFilter);
+  if (actionSectionFilter !== 'all') filtered = filtered.filter(a => a.section === actionSectionFilter);
+  // Sort by priority: Urgent first, then High, then Normal, then Done last
+  const priorityOrder = { Urgent: 0, High: 1, Normal: 2, '': 3 };
+  const statusOrder = { Done: 10 };
+  filtered.sort((a, b) => {
+    const aIsDone = a.status === 'Done' ? 1 : 0;
+    const bIsDone = b.status === 'Done' ? 1 : 0;
+    if (aIsDone !== bIsDone) return aIsDone - bIsDone;
+    return (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2);
+  });
+  const inProg = actionItems.filter(a => a.status === 'In Progress').length;
+  const onHold = actionItems.filter(a => a.status === 'On Hold' || a.status === 'Delayed').length;
+  const done = actionItems.filter(a => a.status === 'Done').length;
+
+  document.getElementById('actionStats').innerHTML = `
+    <div class="stat-cell"><div class="stat-val orange">${inProg}</div><div class="stat-lbl">In Progress</div></div>
+    <div class="stat-cell"><div class="stat-val red">${onHold}</div><div class="stat-lbl">On Hold / Delayed</div></div>
+    <div class="stat-cell"><div class="stat-val green">${done}</div><div class="stat-lbl">Done</div></div>
+  `;
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-ico">&#9989;</div><div class="empty-state-title">No action items</div><div class="empty-state-sub">Add items or analyze a transcript</div></div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(a => {
+    const isOverdue = a.due && new Date(a.due) < new Date() && a.status !== 'Done';
+    const dueFmt = a.due ? new Date(a.due+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+    return `<div class="action-item status-${a.status.toLowerCase().replace(/\s+/g,'-')} priority-${(a.priority||'normal').toLowerCase()}" id="action-${a.id}" onclick="selectActionItem('${a.id}', this); openEditAction('${a.id}')">
+      <div class="action-top">
+        <div class="action-task">${a.task}</div>
+        <button class="btn btn-secondary btn-sm" onclick="deleteAction('${a.id}')" style="flex-shrink:0;padding:4px 8px">&#x2715;</button>
+      </div>
+      <div class="action-meta">
+        <span class="action-owner">&#128100; ${a.owner || 'Unassigned'}</span>
+        ${a.section ? `<span class="badge badge-gray">${a.section}</span>` : ''}
+        ${dueFmt ? `<span class="action-due ${isOverdue?'overdue':''}">&#128197; ${isOverdue?'Overdue &middot; ':''}${dueFmt}</span>` : ''}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-xlt);margin-bottom:4px">Status</div>
+          <select class="status-select" style="width:100%" onclick="event.stopPropagation()" onchange="updateActionStatus('${a.id}',this.value)">
+            <option value="In Progress" ${a.status==='In Progress'?'selected':''}>In Progress</option>
+            <option value="On Hold" ${a.status==='On Hold'?'selected':''}>On Hold</option>
+            <option value="Delayed" ${a.status==='Delayed'?'selected':''}>Delayed</option>
+            <option value="Done" ${a.status==='Done'?'selected':''}>Done</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-xlt);margin-bottom:4px">Priority</div>
+          <select class="status-select" style="width:100%" onclick="event.stopPropagation()" onchange="updateActionPriority('${a.id}',this.value)">
+            <option value="Urgent" ${a.priority==='Urgent'?'selected':''}>🚨 Urgent</option>
+            <option value="High" ${a.priority==='High'?'selected':''}>🟠 High</option>
+            <option value="Normal" ${a.priority==='Normal'?'selected':''}>🟢 Normal</option>
+          </select>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Also refresh the standing agenda item count
+  renderAgenda();
+  populateActionPersonChips();
+}
+
+function filterActions(filter, el) {
+  currentFilter = filter;
+  document.querySelectorAll('#filterChips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderActions();
+}
+
+let editingActionId = null;
+
+function openAddAction() {
+  editingActionId = null;
+  document.querySelector('#modal-action .modal-title').textContent = 'Add Action Item';
+  document.querySelector('#modal-action .btn-primary').textContent = 'Save Action Item';
+  document.getElementById('action-task').value = '';
+  document.getElementById('action-owner').value = '';
+  document.getElementById('action-due').value = '';
+  document.getElementById('action-section').value = 'Commercial';
+  document.getElementById('action-status').value = 'In Progress';
+  document.getElementById('action-priority').value = 'Normal';
+  document.getElementById('ownerSuggestions').classList.remove('open');
+  openModal('modal-action');
+}
+
+function openEditAction(id) {
+  const item = actionItems.find(a => String(a.id) === String(id));
+  if (!item) return;
+  editingActionId = id;
+  document.querySelector('#modal-action .modal-title').textContent = 'Edit Action Item';
+  document.querySelector('#modal-action .btn-primary').textContent = 'Save Changes';
+  document.getElementById('action-task').value = item.task || '';
+  document.getElementById('action-owner').value = item.owner || '';
+  document.getElementById('action-due').value = item.due || '';
+  document.getElementById('action-section').value = item.section || 'Commercial';
+  document.getElementById('action-status').value = item.status || 'In Progress';
+  document.getElementById('action-priority').value = item.priority || 'Normal';
+  document.getElementById('ownerSuggestions').classList.remove('open');
+  openModal('modal-action');
+}
+
+function saveAction() {
+  const task = document.getElementById('action-task').value.trim();
+  if (!task) { document.getElementById('action-task').focus(); return; }
+  const data = {
+    task,
+    owner: document.getElementById('action-owner').value.trim(),
+    due: document.getElementById('action-due').value,
+    section: document.getElementById('action-section').value,
+    status: document.getElementById('action-status').value,
+    priority: document.getElementById('action-priority').value,
+  };
+  if (editingActionId) {
+    const item = actionItems.find(a => a.id === editingActionId);
+    if (item) {
+      Object.assign(item, data);
+      if (item.notionId) saveToNotion('actions', data, item.notionId);
+    }
+    showToast('Action item updated');
+  } else {
+    const newItem = { id: nextActionId++, status: 'In Progress', created: new Date().toISOString().split('T')[0], ...data };
+    actionItems.push(newItem);
+    showToast('Action item added');
+      const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
+    saveToNotion('actions', {
+      task: newItem.task, owner: newItem.owner, status: newItem.status,
+      priority: cap(newItem.priority), section: newItem.section,
+      due: newItem.due || null, notes: '',
+    }).then(id => { if (id) newItem.notionId = id; });
+  }
+  closeModal('modal-action');
+  renderActions();
+}
+
+function updateActionStatus(id, status) {
+  const item = actionItems.find(a => String(a.id) === String(id));
+  if (item) {
+    item.status = status;
+    renderActions();
+    const nid = item.notionId || item.id;
+    if (nid) {
+      saveToNotion('actions', { status }, nid)
+        .then(r => { if (r) console.log('Status saved:', status); })
+        .catch(e => { console.error('Status save failed:', e); showToast('Status not saved to Notion'); });
+    }
+  }
+}
+
+function updateActionPriority(id, priority) {
+  const item = actionItems.find(a => String(a.id) === String(id));
+  if (item) {
+    item.priority = priority;
+    renderActions();
+    const nid = item.notionId || item.id;
+    if (nid) {
+      saveToNotion('actions', { priority }, nid)
+        .catch(e => { console.error('Priority save failed:', e); showToast('Priority not saved to Notion'); });
+    }
+  }
+}
+
+function deleteAction(id) {
+  const item = actionItems.find(a => String(a.id) === String(id));
+  const nid = item?.notionId || item?.id;
+  if (nid) {
+    deleteFromNotion(nid)
+      .then(() => console.log('Action archived in Notion:', nid))
+      .catch(e => { console.error('Archive failed:', e); showToast('Could not remove from Notion'); });
+  }
+  actionItems = actionItems.filter(a => String(a.id) !== String(id));
+  renderActions();
+}
+
+// ═══════════════════════════════════════
+// DECISIONS
+// ═══════════════════════════════════════
+function renderDecisions() {
+  const container = document.getElementById('decisionsList');
+  let filtered = currentDecisionFilter === 'all' ? [...decisions] : decisions.filter(d => d.section === currentDecisionFilter);
+  if (decisionPersonFilter !== 'all') filtered = filtered.filter(d => d.decisionMaker === decisionPersonFilter);
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-ico">&#127919;</div><div class="empty-state-title">No decisions logged yet</div><div class="empty-state-sub">Decisions auto-populate from transcript analysis, or add them manually</div></div>';
+    return;
+  }
+
+  window._did = [];
+  container.innerHTML = filtered.map(d => {
+    const idx = window._did.length;
+    window._did.push(d.id);
+    const dateFmt = d.date ? new Date(d.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    return '<div class="decision-item" onclick="openEditDecision(window._did[' + idx + '])" style="cursor:pointer">'
+      + '<div class="decision-text">' + (d.text||'') + '</div>'
+      + '<div class="decision-meta">'
+      + '<span class="badge badge-purple">' + (d.section||'') + '</span>'
+      + (d.decisionMaker ? '<span class="action-owner">&#128100; ' + d.decisionMaker + '</span>' : '')
+      + (dateFmt ? '<span class="decision-date">&#128197; ' + dateFmt + '</span>' : '')
+      + (d.fromTranscript ? '<span class="badge badge-teal">From transcript</span>' : '')
+      + '<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();deleteDecision(window._did[' + idx + '])" style="margin-left:auto;padding:3px 8px">&#x2715;</button>'
+      + '</div></div>';
+  }).join('');
+  populateDecisionPersonChips();
+}
+
+function filterDecisions(filter, el) {
+  currentDecisionFilter = filter;
+  document.querySelectorAll('#decisionFilterChips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderDecisions();
+}
+
+let editingDecisionId = null;
+
+function openAddDecision() {
+  editingDecisionId = null;
+  document.querySelector('#modal-decision .modal-title').textContent = 'Log Decision';
+  document.querySelector('#modal-decision .btn-primary').textContent = 'Save Decision';
+  document.getElementById('decision-maker').value = '';
+  document.getElementById('decisionMakerSuggestions').classList.remove('open');
+  document.getElementById('decision-text').value = '';
+  document.getElementById('decision-maker').value = '';
+  document.getElementById('decision-section').value = 'Commercial';
+  document.getElementById('decision-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('decisionMakerSuggestions').classList.remove('open');
+  openModal('modal-decision');
+}
+
+function openEditDecision(id) {
+  const item = decisions.find(d => d.id === id);
+  if (!item) return;
+  editingDecisionId = id;
+  document.querySelector('#modal-decision .modal-title').textContent = 'Edit Decision';
+  document.querySelector('#modal-decision .btn-primary').textContent = 'Save Changes';
+  document.getElementById('decision-text').value = item.text || '';
+  document.getElementById('decision-maker').value = item.decisionMaker || '';
+  document.getElementById('decision-section').value = item.section || 'Commercial';
+  document.getElementById('decision-date').value = item.date || new Date().toISOString().split('T')[0];
+  document.getElementById('decisionMakerSuggestions').classList.remove('open');
+  openModal('modal-decision');
+}
+
+function saveDecision() {
+  const text = document.getElementById('decision-text').value.trim();
+  if (!text) { document.getElementById('decision-text').focus(); return; }
+  const data = {
+    text,
+    decisionMaker: document.getElementById('decision-maker').value.trim() || null,
+    section: document.getElementById('decision-section').value,
+    date: document.getElementById('decision-date').value,
+    fromTranscript: false,
+  };
+  if (editingDecisionId) {
+    const item = decisions.find(d => d.id === editingDecisionId);
+    if (item) {
+      Object.assign(item, data);
+      if (item.notionId) saveToNotion('decisions', data, item.notionId);
+    }
+    showToast('Decision updated');
+  } else {
+    const newItem = { id: nextDecisionId++, ...data };
+    decisions.push(newItem);
+    saveToNotion('decisions', data).then(id => { if (id) newItem.notionId = id; });
+    showToast('Decision logged');
+  }
+  closeModal('modal-decision');
+  renderDecisions();
+}
+
+function deleteDecision(id) {
+  const item = decisions.find(d => String(d.id) === String(id));
+  const nid = item?.notionId || item?.id;
+  if (nid) {
+    deleteFromNotion(nid)
+      .then(() => console.log('Decision archived:', nid))
+      .catch(e => { console.error('Archive failed:', e); showToast('Could not remove from Notion'); });
+  }
+  decisions = decisions.filter(d => String(d.id) !== String(id));
+  renderDecisions();
+}
+
+// ═══════════════════════════════════════
+// RUN OF SHOW
+// ═══════════════════════════════════════
+function renderROS() {
+  // Update meeting date/time in header
+  const rosInfo = document.getElementById('rosMeetingInfo');
+  if (rosInfo) {
+    const d = document.getElementById('meetingDate')?.value;
+    const t = document.getElementById('meetingTime')?.value || '07:30';
+    const dateFmt = d ? new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}) : '';
+    const [th, tm] = t.split(':').map(Number);
+    const ampm = th >= 12 ? 'PM' : 'AM';
+    const h12 = th % 12 || 12;
+    const timeFmt = `${h12}:${tm.toString().padStart(2,'0')} ${ampm} Pacific Time`;
+    rosInfo.textContent = dateFmt ? (dateFmt + " · " + timeFmt) : "Check off each item as it's completed";
+  }
+  const container = document.getElementById('rosContent');
+  const startTime = document.getElementById('meetingTime')?.value || '09:00';
+  const [h, m] = startTime.split(':').map(Number);
+  let totalMin = 0;
+
+  // Build full ordered list: standing items first, then agenda items by section
+  const allItems = [
+    {topic:'Start transcript in Teams', presenter:'', duration:1, _standing:true, _section:'Standing'},
+    {topic:'Action Item Review', presenter:'Baji', duration:10, _standing:true, _section:'Standing'},
+    ...agendaItems.map(i => ({...i, _standing:false, _section:i.section}))
+  ];
+
+  if (allItems.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-ico">&#128203;</div><div class="empty-state-title">No agenda items</div></div>';
+    return;
+  }
+
+  let currentSec = null;
+  let html = '';
+  allItems.forEach((item, idx) => {
+    if (item._section !== currentSec) {
+      currentSec = item._section;
+      if (!item._standing) html += `<div class="sec-label">${item._section}</div>`;
+    }
+    const timeStr = formatTime12(h, m + totalMin);
+    const isDone = rosCompleted.has(idx);
+    const firstUnchecked = allItems.findIndex((_,i) => !rosCompleted.has(i));
+    const isCurrent = idx === firstUnchecked;
+    html += `<div class="ros-item ${isCurrent?'current':''} ${isDone?'done':''}">
+      <input type="checkbox" class="ros-check" ${isDone?'checked':''} onchange="toggleRosItem(${idx})" onclick="event.stopPropagation()">
+      <div class="ros-time">${timeStr}</div>
+      <div style="flex:1">
+        <div class="ros-topic ${isDone?'ros-topic-done':''}">${item.topic}</div>
+        ${item.presenter ? `<div class="ros-presenter">&#128100; ${item.presenter}</div>` : ''}
+        ${item._standing && item.topic === 'Action Item Review' ? `<button onclick="goToActionsFromROS()" style="margin-top:6px;padding:5px 12px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.02em">&#9989; Review Actions &rarr;</button>` : ''}
+      </div>
+      <div class="ros-dur">${item.duration}m</div>
+    </div>`;
+    totalMin += parseInt(item.duration)||0;
+  });
+
+  const totalH = Math.floor(totalMin/60), totalM = totalMin%60;
+  const total = allItems.length;
+  const completedCount = rosCompleted.size;
+  html += `<div class="info-box" style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <span>Total: <strong>${totalH>0?totalH+'h ':''}</strong><strong>${totalM}min</strong></span>
+    <span style="font-size:11px;color:var(--text-xlt)">${completedCount} of ${total} complete</span>
+  </div>`;
+  container.innerHTML = html;
+}
+
+function formatTime12(h, m) {
+  const total = h*60+m;
+  const hh = Math.floor(total/60)%24, mm = total%60;
+  return `${hh%12||12}:${mm.toString().padStart(2,'0')} ${hh>=12?'PM':'AM'}`;
+}
+
+function toggleRosItem(idx) { if (rosCompleted.has(idx)) { rosCompleted.delete(idx); } else { rosCompleted.add(idx); } renderROS(); }
+
+function goToActionsFromROS() {
+  showPanel('actions');
+  // Inject a back button at the top of the actions panel if not already there
+  const panel = document.getElementById('panel-actions');
+  if (!document.getElementById('backToRosBtn')) {
+    const backBar = document.createElement('div');
+    backBar.id = 'backToRosBtn';
+    backBar.style.cssText = 'padding:8px 0 4px;text-align:left';
+    backBar.innerHTML = `<button onclick="showPanel('runofshow');this.parentElement.remove()" style="padding:6px 14px;background:none;border:1.5px solid var(--blue);color:var(--blue);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.02em">&larr; Back to Run of Show</button>`;
+    panel.insertBefore(backBar, panel.firstChild);
+  }
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval); timerRunning = false;
+    document.getElementById('timerStartBtn').textContent = '▶ Resume';
+  } else {
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      const m = Math.floor(timerSeconds/60).toString().padStart(2,'0');
+      const s = (timerSeconds%60).toString().padStart(2,'0');
+      document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+    }, 1000);
+    timerRunning = true;
+    document.getElementById('timerStartBtn').textContent = '⏸ Pause';
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval); timerRunning = false; timerSeconds = 0;
+  document.getElementById('timerDisplay').textContent = '00:00';
+  document.getElementById('timerStartBtn').textContent = '▶ Start';
+}
+
+// ═══════════════════════════════════════
+// TRANSCRIPT
+// ═══════════════════════════════════════
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+function handleFileUpload(e) { const file = e.target.files[0]; if (file) processFile(file); }
+
+function processFile(file) {
+  const name = file.name.toLowerCase();
+
+  // .vtt or .txt — read as plain text
+  if (name.endsWith('.vtt') || name.endsWith('.txt')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      // Strip VTT timestamps and formatting
+      let text = e.target.result;
+      if (name.endsWith('.vtt')) {
+        text = text
+          .replace(/WEBVTT\n?/g, '')
+          .replace(/^\d{2}:\d{2}:\d{2}\.\d{3}\s+-->\s+\d{2}:\d{2}:\d{2}\.\d{3}.*$/gm, '')
+          .replace(/<[^>]+>/g, '')
+          .replace(/^\d+$/gm, '')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
+      }
+      showTranscript(text);
+    };
+    reader.readAsText(file);
+
+  // .docx — extract text using mammoth via CDN
+  } else if (name.endsWith('.docx')) {
+    document.getElementById('uploadZone').classList.add('hidden');
+    document.getElementById('transcriptPreviewWrap').classList.remove('hidden');
+    document.getElementById('transcriptPreview').textContent = 'Extracting text from Word document…';
+
+    const reader = new FileReader();
+    reader.onload = async e => {
+      try {
+        // Use mammoth to extract text from docx
+        const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
+        showTranscript(result.value);
+      } catch(err) {
+        document.getElementById('transcriptPreview').textContent = 'Could not read .docx file. Please try downloading as .vtt or .txt from Teams instead.';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+
+  } else {
+    // fallback — try plain text
+    const reader = new FileReader();
+    reader.onload = e => showTranscript(e.target.result);
+    reader.readAsText(file);
+  }
+}
+
+function showTranscript(text) {
+  transcriptText = text;
+  document.getElementById('transcriptPreview').textContent = text.slice(0, 800) + (text.length > 800 ? '\n…' : '');
+  document.getElementById('transcriptPreviewWrap').classList.remove('hidden');
+  document.getElementById('uploadZone').classList.add('hidden');
+}
+
+function clearTranscript() {
+  transcriptText = '';
+  document.getElementById('transcriptPreviewWrap').classList.add('hidden');
+  document.getElementById('uploadZone').classList.remove('hidden');
+  document.getElementById('extractResults').classList.add('hidden');
+  document.getElementById('extractResults').innerHTML = '';
+  document.getElementById('fileInput').value = '';
+}
+
+async function analyzeTranscript() {
+  if (!transcriptText) return;
+  document.getElementById('aiThinking').classList.remove('hidden');
+  document.getElementById('extractResults').classList.add('hidden');
+
+  const prompt = `You are analyzing a Microsoft Teams meeting transcript from the Misfit Island Water Process weekly Monday call at Moleaer.
+
+${TEAM_CONTEXT}
+
+Extract the following from the transcript. Return ONLY valid JSON:
+{
+  "actionItems": [
+    { "task": "...", "owner": "first name only", "section": "Commercial|Product Development|Marketing|Conferences|Other", "priority": "urgent|high|normal" }
+  ],
+  "decisions": [
+    { "text": "...", "section": "Commercial|Product Development|Marketing|Conferences|Other", "decisionMaker": "first name or null" }
+  ],
+  "speakers": ["first names of everyone who spoke"],
+  "summary": "2-3 sentence summary of the call"
+}
+
+Transcript:
+${transcriptText.slice(0,6000)}`;
+
+  // Try to extract meeting date from transcript text
+  const dateMatch = transcriptText.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})|((January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4})/i);
+  if (dateMatch) {
+    try { transcriptMeetingDate = new Date(dateMatch[0]).toISOString().split('T')[0]; } catch(e) {}
+  }
+
+  try {
+    const res = await fetch('/.netlify/functions/analyze-transcript', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ transcript: transcriptText }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Analysis failed');
+    const raw = data.result || '{}';
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    // Store next meeting scheduling info
+    if (parsed.nextMeeting) nextMeetingData = parsed.nextMeeting;
+
+    // Normalize priority to exact Title Case values Notion expects
+    const normPriority = p => {
+      if (!p) return 'Normal';
+      const l = p.toLowerCase();
+      if (l === 'urgent') return 'Urgent';
+      if (l === 'high') return 'High';
+      return 'Normal';
+    };
+    if (parsed.actionItems) {
+      parsed.actionItems = parsed.actionItems.map(a => ({ ...a, priority: normPriority(a.priority) }));
+    }
+    renderExtractResults(parsed);
+  } catch(err) {
+    document.getElementById('aiThinking').classList.add('hidden');
+    document.getElementById('extractResults').classList.remove('hidden');
+    document.getElementById('extractResults').innerHTML = '<div class="warn-box">&#9888;&#65039; Could not analyze transcript: ' + err.message + '</div>';
+  }
+}
+
+function renderExtractResults(data) {
+  document.getElementById('aiThinking').classList.add('hidden');
+  const container = document.getElementById('extractResults');
+  container.classList.remove('hidden');
+  let html = '';
+
+  if (data.summary) html += `<div class="success-box" style="margin-bottom:10px">&#128203; <strong>Summary:</strong> ${data.summary}</div>`;
+
+  if (data.speakers?.length) {
+    html += `<div class="info-box" style="margin-bottom:10px">&#128483;&#65039; <strong>Speakers detected:</strong> ${data.speakers.join(', ')}</div>`;
+  }
+
+  if (data.actionItems?.length) {
+    html += `<div class="extract-card"><div class="extract-hdr"><span style="font-size:20px">&#9989;</span><div class="extract-title">Action Items (${data.actionItems.length})</div></div>`;
+    data.actionItems.forEach((item,i) => {
+      html += `<div class="extract-item">
+        <input type="checkbox" class="extract-check" id="ea-${i}" checked>
+        <div class="extract-text"><strong>${item.task}</strong>${item.owner ? ` &middot; <em>${item.owner}</em>` : ''}</div>
+        <span class="badge badge-gray">${item.section}</span>
+      </div>`;
+    });
+    html += `<div class="btn-row"><button class="btn btn-primary btn-sm" onclick='importActions(${JSON.stringify(data.actionItems)})'>Import Checked</button></div></div>`;
+  }
+
+  if (data.decisions?.length) {
+    html += `<div class="extract-card" style="margin-top:10px"><div class="extract-hdr"><span style="font-size:20px">&#127919;</span><div class="extract-title">Decisions (${data.decisions.length})</div></div>`;
+    data.decisions.forEach((d,i) => {
+      html += `<div class="extract-item">
+        <input type="checkbox" class="extract-check" id="ed-${i}" checked>
+        <div class="extract-text">${d.text}</div>
+        <span class="badge badge-purple">${d.section}</span>
+      </div>`;
+    });
+    html += `<div class="btn-row"><button class="btn btn-primary btn-sm" onclick='importDecisions(${JSON.stringify(data.decisions)})'>Import Checked</button></div></div>`;
+  html += `<div style="margin-top:16px;padding:14px;background:var(--offwhite);border-radius:10px;border:1.5px solid var(--border)">
+    <div style="font-size:13px;font-weight:700;color:var(--text-dark);margin-bottom:6px">&#127937; Close Meeting</div>
+    <div style="font-size:12px;color:var(--text-mid);margin-bottom:10px">Archive the current agenda so it starts fresh next week. Only do this after importing actions and decisions.</div>
+    <button class="btn btn-secondary" onclick="archiveCurrentAgenda()" style="width:100%">&#128451; Archive Agenda &amp; Close Meeting</button>
+  </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function getNextMonday(fromDate) {
+  const d = fromDate ? new Date(fromDate+'T12:00:00') : new Date();
+  const day = d.getDay(); // 0=Sun, 1=Mon...
+  const daysUntilMonday = day === 1 ? 7 : (8 - day) % 7 || 7;
+  d.setDate(d.getDate() + daysUntilMonday);
+  return d.toISOString().split('T')[0];
+}
+
+async function archiveCurrentAgenda() {
+  const toArchive = [...agendaItems];
+  if (!toArchive.length) {
+    showToast('No agenda items to archive');
+    return;
+  }
+  // Archive all agenda items
+  await Promise.all(toArchive.map(item => {
+    const nid = item.notionId || item.id;
+    return nid ? deleteFromNotion(nid).catch(() => {}) : Promise.resolve();
+  }));
+  agendaItems = [];
+  renderAgenda();
+  renderROS();
+
+  // Update meeting date based on nextMeeting from transcript
+  const currentDate = document.getElementById('meetingDate')?.value;
+  let newDate = null;
+  let newTime = null;
+  let skipUpdate = false;
+
+  if (nextMeetingData) {
+    if (nextMeetingData.cancelled) {
+      skipUpdate = true;
+      showToast('Next call cancelled — date not updated');
+    } else if (nextMeetingData.date) {
+      newDate = nextMeetingData.date;
+    }
+    if (nextMeetingData.time) newTime = nextMeetingData.time;
+  }
+
+  if (!skipUpdate) {
+    // Default: advance to following Monday
+    newDate = newDate || getNextMonday(currentDate);
+    const dateEl = document.getElementById('meetingDate');
+    if (dateEl) {
+      dateEl.value = newDate;
+      localStorage.setItem('mi_meetingDate', newDate);
+      saveSetting('meetingDate', newDate);
+    }
+    if (newTime) {
+      const timeEl = document.getElementById('meetingTime');
+      if (timeEl) {
+        timeEl.value = newTime;
+        localStorage.setItem('mi_meetingTime', newTime);
+        saveSetting('meetingTime', newTime);
+      }
+    }
+    renderROS();
+    renderEmailTemplates();
+  }
+
+  // Build and send post-call summary email automatically
+  const dateFmt = (() => {
+    const d = document.getElementById('meetingDate')?.value;
+    return d ? new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) : 'Monday';
+  })();
+  const portal = 'https://water-process-hub.netlify.app';
+  const openItems = actionItems.filter(a => a.status !== 'Done');
+  const urgentItems = openItems.filter(a => a.priority === 'Urgent');
+  const highItems = openItems.filter(a => a.priority === 'High');
+  const normalItems = openItems.filter(a => a.priority === 'Normal');
+  const NL = '\n';
+
+  let emailBody = 'Hi team,' + NL + NL;
+  emailBody += 'Here is the summary from the Misfit Island call on ' + dateFmt + ':' + NL + NL;
+
+  if (nextMeetingData && nextMeetingData.cancelled) {
+    emailBody += '*** NOTE: Next call is cancelled/skipped ***' + NL + NL;
+  } else if (newDate) {
+    const nextFmt = new Date(newDate+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    const t = document.getElementById('meetingTime')?.value || '07:30';
+    const [th,tm] = t.split(':').map(Number);
+    const nextTime = (th%12||12) + ':' + String(tm).padStart(2,'0') + ' ' + (th>=12?'PM':'AM') + ' Pacific Time';
+    emailBody += 'Next call: ' + nextFmt + ' at ' + nextTime + NL + NL;
+  }
+
+  emailBody += '── OPEN ACTION ITEMS (' + openItems.length + ') ──' + NL;
+  if (urgentItems.length) {
+    emailBody += NL + 'Urgent' + NL;
+    urgentItems.forEach(a => { emailBody += '  - ' + a.task + ' (' + (a.owner||'Unassigned') + ')' + NL; });
+  }
+  if (highItems.length) {
+    emailBody += NL + 'High' + NL;
+    highItems.forEach(a => { emailBody += '  - ' + a.task + ' (' + (a.owner||'Unassigned') + ')' + NL; });
+  }
+  if (normalItems.length) {
+    emailBody += NL + 'Normal' + NL;
+    normalItems.forEach(a => { emailBody += '  - ' + a.task + ' (' + (a.owner||'Unassigned') + ')' + NL; });
+  }
+
+  emailBody += NL + '── DECISIONS ──' + NL;
+  if (decisions.length) {
+    decisions.forEach(d => {
+      emailBody += '  - ' + d.text + (d.decisionMaker ? ' (' + d.decisionMaker + ')' : '') + NL;
+    });
+  } else {
+    emailBody += '  No decisions logged.' + NL;
+  }
+
+  emailBody += NL + 'Update your status in the portal: ' + portal;
+
+  const toList = ['baji@moleaer.com','cesar@moleaer.com','andrea@moleaer.com','cody@moleaer.com','johnc@moleaer.com','sarah@moleaer.com','riley@moleaer.com','christian@moleaer.com','rachel@moleaer.com','jenn.fisher@moleaer.com','patrick.ryan@moleaer.com','sam@moleaer.com'].join(';');
+  const emailSubject = 'Misfit Island Post-Call Summary — ' + dateFmt;
+
+  window.open('mailto:' + encodeURIComponent(toList) + '?subject=' + encodeURIComponent(emailSubject) + '&body=' + encodeURIComponent(emailBody), '_blank');
+
+  const nextDateMsg = skipUpdate ? '' : (' Next meeting set to ' + new Date(newDate+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) + '.');
+  showToast('Agenda archived.' + nextDateMsg);
+}
+
+function importActions(items) {
+  items.forEach((item,i) => {
+    if (document.getElementById(`ea-${i}`)?.checked) {
+      actionItems.push({
+        id: nextActionId++, task: item.task, owner: item.owner||'',
+        due:'', section: item.section||'Other', status:'In Progress',
+        priority: item.priority||'normal', created: new Date().toISOString().split('T')[0],
+      });
+    }
+  });
+  // Sync imported actions to Notion
+  const weekOf = getWeekOf();
+  actionItems.filter(a => !a.notionId).forEach(a => {
+    saveToNotion('actions', {
+      task: a.task, owner: a.owner, status: a.status,
+      priority: a.priority, section: a.section, weekOf,
+    }).then(id => { if (id) a.notionId = id; });
+  });
+  showToast('Action items imported'); showPanel('actions'); renderActions();
+}
+
+function importDecisions(items) {
+  const today = new Date().toISOString().split('T')[0];
+  items.forEach((d,i) => {
+    if (document.getElementById(`ed-${i}`)?.checked) {
+      decisions.push({id: nextDecisionId++, text: d.text, section: d.section||'Other', date: today, fromTranscript: true});
+    }
+  });
+  const importDate = new Date().toISOString().split('T')[0];
+  decisions.filter(d => !d.notionId).forEach(d => {
+    saveToNotion('decisions', {
+      text: d.text, section: d.section, date: importDate, fromTranscript: true,
+    }).then(id => { if (id) d.notionId = id; });
+  });
+  showToast('Decisions logged'); showPanel('decisions'); renderDecisions();
+}
+
+// ═══════════════════════════════════════
+// EMAIL TEMPLATES
+// ═══════════════════════════════════════
+function renderEmailTemplates() {
+  const portalLink = 'https://water-process-hub.netlify.app';
+  const meetingDate = document.getElementById('meetingDate')?.value;
+  const dateFmt = meetingDate ? new Date(meetingDate+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) : 'Monday';
+  const rawTime = document.getElementById('meetingTime')?.value || '07:30';
+  const [th, tm] = rawTime.split(':').map(Number);
+  const ampm = th >= 12 ? 'PM' : 'AM';
+  const h12 = th % 12 || 12;
+  const timeFmt = `${h12}:${tm.toString().padStart(2,'0')} ${ampm} Pacific Time`;
+  const container = document.getElementById('emailTemplates');
+
+  const templates = [
+    {
+      type:'Pre-Call Reminder', icon:'&#128197;',
+      subject:`Misfit Island Reminder — Add Agenda Items for ${dateFmt}`,
+      body:`Hi team,
+
+Just a reminder that our Misfit Island Water Process call is on ${dateFmt} at ${timeFmt}.
+
+Please:
+• Add any agenda items you want to cover
+• Update the status of your open action items before the call
+
+Portal: https://water-process-hub.netlify.app
+
+Sections this week:
+• Commercial
+• Product Development
+• Marketing
+• Conferences
+• Other
+
+Thanks,
+Baji`
+    },
+    {
+      type:'Agenda', icon:'&#128203;',
+      subject:`Misfit Island Agenda — ${dateFmt}`,
+      body: buildAgendaEmailBody(dateFmt, timeFmt, portalLink)
+    },
+    {
+      type:'Post-Call Summary', icon:'&#9989;',
+      subject:`Misfit Island Action Items & Decisions — ${dateFmt}`,
+      body: buildSummaryEmailBody(transcriptMeetingDate ? new Date(transcriptMeetingDate+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) : dateFmt, portalLink)
+    },
+  ];
+
+  container.innerHTML = templates.map(t => `
+    <div class="email-template">
+      <div class="email-hdr-bar">
+        <div class="email-type">${t.icon} ${t.type}</div>
+        <span class="badge badge-gray">Outlook</span>
+      </div>
+      <div class="email-body-preview"><strong>Subject:</strong> ${t.subject}<br><br>${t.body.replace(/\n/g,'<br>')}</div>
+      <div class="email-actions">
+        <button class="btn btn-primary btn-sm" onclick='openOutlook(${JSON.stringify(t.subject)},${JSON.stringify(t.body)})'>&#128228; Open in Outlook</button>
+        <button class="btn btn-secondary btn-sm" onclick='copyText(${JSON.stringify(t.body)})'>&#128203; Copy</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function buildAgendaEmailBody(dateFmt, timeFmt, portalLink) {
+  const timeStr = timeFmt || '7:30 AM Pacific Time';
+  const portal = portalLink || 'https://water-process-hub.netlify.app';
+  let body = `Hi team,
+
+Here is the agenda for our Misfit Island call on ${dateFmt} at ${timeStr}:
+
+`;
+  body += `── STANDING ──
+  • Action Item Review (Baji) · 10 min
+
+`;
+  SECTIONS.forEach(sec => {
+    const items = agendaItems.filter(i => i.section === sec);
+    if (items.length) {
+      body += `── ${sec.toUpperCase()} ──
+`;
+      items.forEach(i => { body += `  • ${i.topic}${i.presenter?' ('+i.presenter+')':''} · ${i.duration} min
+`; });
+      body += '\n';
+    }
+  });
+  body += `
+Portal: ${portal}`;
+  return body;
+}
+
+function buildSummaryEmailBody(dateFmt, portalLink) {
+  const portal = portalLink || 'https://water-process-hub.netlify.app';
+  const open = actionItems.filter(a => a.status !== 'Done');
+  let body = `Hi team,
+
+Here is the summary from the Misfit Island call on ${dateFmt}:
+
+`;
+  if (decisions.length) {
+    body += 'KEY DECISIONS\n' + decisions.map(d => '  • ' + d.text).join('\n') + '\n\n';
+  }
+  body += `OPEN ACTION ITEMS
+`;
+  if (!open.length) {
+    body += '  No open action items.\n';
+  } else {
+    open.forEach(a => {
+      body += `  ☐ ${a.task}
+     Owner: ${a.owner||'TBD'}${a.due?' · Due: '+new Date(a.due+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}
+
+`;
+    });
+  }
+  body += `Update your status in the portal: ${portal}`;
+  return body;
+}
+
+function emailAgenda() {
+  const date = document.getElementById('meetingDate').value;
+  const dateFmt = date ? new Date(date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) : 'Monday';
+  const rawTime2 = document.getElementById('meetingTime')?.value || '07:30';
+  const [th2, tm2] = rawTime2.split(':').map(Number);
+  const ampm2 = th2 >= 12 ? 'PM' : 'AM';
+  const h122 = th2 % 12 || 12;
+  const timeFmt2 = `${h122}:${tm2.toString().padStart(2,'0')} ${ampm2} Pacific Time`;
+  const subject = `Misfit Island Agenda — ${dateFmt}`;
+  const body = buildAgendaEmailBody(dateFmt, timeFmt2, 'https://water-process-hub.netlify.app');
+  const to = ['baji@moleaer.com','cesar@moleaer.com','andrea@moleaer.com','cody@moleaer.com','johnc@moleaer.com','sarah@moleaer.com','riley@moleaer.com','christian@moleaer.com','rachel@moleaer.com','jenn.fisher@moleaer.com','patrick.ryan@moleaer.com','sam@moleaer.com'].join(';');
+  window.open(`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,'_blank');
+}
+
+function openOutlook(subject, body) {
+  const to = ['baji@moleaer.com','cesar@moleaer.com','andrea@moleaer.com','cody@moleaer.com','johnc@moleaer.com','sarah@moleaer.com','riley@moleaer.com','christian@moleaer.com','rachel@moleaer.com','jenn.fisher@moleaer.com','patrick.ryan@moleaer.com','sam@moleaer.com'].join(';');
+  window.open(`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,'_blank');
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+}
+
+// ═══════════════════════════════════════
+// AI SUGGEST
+// ═══════════════════════════════════════
+function openAISuggest() {
+  document.getElementById('ai-context-input').value = '';
+  document.getElementById('aiSuggestResults').classList.add('hidden');
+  document.getElementById('aiSuggestLoading').classList.add('hidden');
+  openModal('modal-ai-suggest');
+}
+
+async function runAISuggest() {
+  const context = document.getElementById('ai-context-input').value.trim();
+  document.getElementById('aiSuggestLoading').classList.remove('hidden');
+  document.getElementById('aiSuggestResults').classList.add('hidden');
+
+  const prompt = `You are helping plan the weekly Misfit Island Water Process team call at Moleaer, a nanobubble technology company.
+Sections: Commercial, Product Development, Marketing, Conferences, Other.
+${TEAM_CONTEXT}
+${context ? 'Context from Baji this week: ' + context : ''}
+Suggest 5-7 specific actionable agenda items. Assign each to the most relevant owner. Return ONLY JSON:
+{"suggestions":[{"topic":"...","section":"...","duration":5,"presenter":"first name","why":"one-line reason"}]}`;
+
+  try {
+    const res = await fetch('/.netlify/functions/analyze-transcript', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ transcript: prompt, mode: 'suggest' })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Suggest failed');
+    const parsed = JSON.parse((data.result||'{}').replace(/```json|```/g,'').trim());
+    renderAISuggestions(parsed.suggestions||[]);
+  } catch(e) {
+    document.getElementById('aiSuggestLoading').classList.add('hidden');
+    document.getElementById('aiSuggestResults').classList.remove('hidden');
+    document.getElementById('aiSuggestResults').innerHTML = '<div class="warn-box">Could not generate suggestions.</div>';
+  }
+}
+
+function renderAISuggestions(suggestions) {
+  document.getElementById('aiSuggestLoading').classList.add('hidden');
+  const container = document.getElementById('aiSuggestResults');
+  container.classList.remove('hidden');
+  if (!suggestions.length) { container.innerHTML = '<div class="warn-box">No suggestions generated.</div>'; return; }
+  container.innerHTML = suggestions.map((s,i) => `
+    <div class="extract-item" style="margin-bottom:7px">
+      <input type="checkbox" class="extract-check" id="sug-${i}" checked>
+      <div class="extract-text"><strong>${s.topic}</strong>${s.presenter?` &middot; <em>${s.presenter}</em>`:''} <br><span style="font-size:11px;color:var(--text-xlt)">${s.why}</span></div>
+      <span class="badge badge-teal">${s.section} &middot; ${s.duration}m</span>
+    </div>
+  `).join('') + `<button class="btn btn-primary btn-sm mt8" onclick='addSuggestions(${JSON.stringify(suggestions)})'>Add Selected to Agenda</button>`;
+}
+
+function addSuggestions(suggestions) {
+  suggestions.forEach((s,i) => {
+    if (document.getElementById(`sug-${i}`)?.checked) {
+      agendaItems.push({id:nextAgendaId++, section:s.section, topic:s.topic, presenter:s.presenter||'', duration:s.duration, notes:s.why||''});
+    }
+  });
+  closeModal('modal-ai-suggest'); renderAgenda(); renderROS();
+  showToast('Items added to agenda');
+}
+
+// ═══════════════════════════════════════
+// TYPEAHEAD
+// ═══════════════════════════════════════
+function filterSuggestions(input, listId) {
+  const val = input.value.trim().toLowerCase();
+  const list = document.getElementById(listId);
+  if (!val) { list.classList.remove('open'); list.innerHTML = ''; return; }
+  const matches = TEAM_MEMBERS.filter(m => m.name.toLowerCase().includes(val));
+  if (!matches.length) { list.classList.remove('open'); list.innerHTML = ''; return; }
+  list.innerHTML = matches.map(m => `
+    <div class="typeahead-item" onmousedown="pickSuggestion('${m.name}','${input.id}','${listId}')">
+      <div class="typeahead-avatar" style="background:${m.color}">${m.initials}</div>
+      <div><div class="typeahead-name">${m.name}</div><div class="typeahead-role">${m.role}</div></div>
+    </div>`).join('');
+  list.classList.add('open');
+}
+
+function pickSuggestion(name, inputId, listId) {
+  document.getElementById(inputId).value = name;
+  document.getElementById(listId).classList.remove('open');
+  document.getElementById(listId).innerHTML = '';
+}
+
+function hideSuggestions(listId) {
+  setTimeout(() => {
+    const list = document.getElementById(listId);
+    if (list) { list.classList.remove('open'); list.innerHTML = ''; }
+  }, 150);
+}
+
+// ═══════════════════════════════════════
+// MODAL / TOAST / UTILS
+// ═══════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════
+// TRANSCRIPT — FIND FROM TEAMS
+// ═══════════════════════════════════════
+// Misfit Island Reloaded — recurring meeting details found via Microsoft 365 calendar
+const MISFIT_MEETING_JOIN_URL = 'https://teams.microsoft.com/meet/21571611210987?p=1I1OLA';
+let latestMeetingWebUrl = null;
+
+
+
+function openTeamsRecap() {
+  // Open the Teams web URL for the meeting — user can grab the transcript from the recap tab
+  const url = latestMeetingWebUrl || 'https://teams.microsoft.com/meet/21571611210987?p=1I1OLA';
+  window.open(url, '_blank');
+  showToast('Opening Teams — go to Recap tab for the transcript');
+}
+
+
+// ═══════════════════════════════════════
+// CONFIGURATION
+// ═══════════════════════════════════════
+// Set this to your Netlify site URL after deployment
+// During development it will use relative paths
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8888/.netlify/functions'
+  : '/.netlify/functions';
+
+// Current user (set by name picker)
+let currentUser = localStorage.getItem('misfit_user') || null;
+
+// Current week date (Monday of current week)
+function getWeekOf() {
+  // Return today's date — user can adjust the meeting date picker as needed
+  return new Date().toISOString().split('T')[0];
+}
+
+// ═══════════════════════════════════════
+// NAME PICKER
+// ═══════════════════════════════════════
+function selectUser(name) {
+  setTimeout(applyDateTimeEditState, 100);
+  currentUser = name;
+  localStorage.setItem('misfit_user', name);
+  document.getElementById('namePicker').style.display = 'none';
+  loadFromNotion();
+}
+
+// ═══════════════════════════════════════
+// NOTION API
+// ═══════════════════════════════════════
+let notionAvailable = false;
+
+function setSyncStatus(msg, color) {
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  el.innerHTML = `<span style="width:6px;height:6px;border-radius:50%;background:${color};display:inline-block"></span> ${msg}`;
+}
+
+async function loadFromNotion() {
+  setSyncStatus('Syncing...', 'var(--yellow)');
+  try {
+    const res = await fetch(`${API_BASE}/notion-get`);
+    if (!res.ok) throw new Error('Network error');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    notionAvailable = true;
+
+    // Don't re-render if a modal is currently open
+    const anyModalOpen = document.querySelector('.modal-overlay.open');
+    if (anyModalOpen) {
+      setSyncStatus('Synced', 'var(--green)');
+      setTimeout(() => setSyncStatus('', 'transparent'), 3000);
+      return;
+    }
+
+    // Load actions (even if empty, connection works)
+    if (data.actions?.length) {
+      actionItems = data.actions.map(a => ({
+        id: a.id,
+        task: a.task,
+        owner: a.owner,
+        status: a.status || 'In Progress',
+        priority: a.priority || 'Normal',
+        section: a.section || 'Other',
+        due: a.due,
+        notes: a.notes,
+        created: a.created,
+        notionId: a.id,
+      }));
+    }
+
+    // Load agenda
+    if (data.agenda?.length) {
+      agendaItems = data.agenda.map(a => ({
+        id: a.id,
+        topic: a.topic,
+        presenter: a.presenter,
+        section: a.section || 'Other',
+        duration: a.duration || 5,
+        notes: a.notes,
+        notionId: a.id,
+      }));
+    }
+
+    // Load decisions
+    if (data.decisions?.length) {
+      decisions = data.decisions.map(d => ({
+        id: d.id,
+        text: d.text,
+        decisionMaker: d.decisionMaker || '',
+        section: d.section || 'Other',
+        date: d.date,
+        fromTranscript: d.fromTranscript,
+        notionId: d.id,
+      }));
+    }
+
+    // Apply settings from Notion (Notion is source of truth for date/time)
+    if (data.settingsIds) settingsPageIds = data.settingsIds;
+    if (data.settings?.meetingDate) {
+      document.getElementById('meetingDate').value = data.settings.meetingDate;
+      localStorage.setItem('mi_meetingDate', data.settings.meetingDate);
+    }
+    if (data.settings?.meetingTime) {
+      document.getElementById('meetingTime').value = data.settings.meetingTime;
+      localStorage.setItem('mi_meetingTime', data.settings.meetingTime);
+    }
+    renderAgenda();
+    renderActions();
+    renderDecisions();
+    renderROS();
+    renderEmailTemplates();
+    populateActionPersonChips();
+    populateDecisionPersonChips();
+    setSyncStatus('Synced', 'var(--green)');
+    setTimeout(() => setSyncStatus('', 'transparent'), 3000);
+  } catch(e) {
+    notionAvailable = false;
+    setSyncStatus('Offline', 'var(--silver)');
+    console.warn('Notion unavailable, using local data:', e.message);
+  }
+}
+
+async function saveSetting(key, value) {
+  if (!settingsPageIds[key]) return; // settings DB not configured yet
+  try {
+    await saveToNotion('settings', { value }, settingsPageIds[key]);
+  } catch(e) {
+    console.warn('Could not save setting:', key, e.message);
+  }
+}
+
+async function saveToNotion(type, data, notionId) {
+  const payload = { type, id: notionId || null, data };
+  const res = await fetch(`${API_BASE}/notion-save`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const result = await res.json();
+  if (!res.ok) {
+    const errMsg = result.error || JSON.stringify(result);
+    console.error('Notion save error:', errMsg, '| Payload:', JSON.stringify(data));
+    throw new Error(errMsg);
+  }
+  return result.id || null;
+}
+
+async function deleteFromNotion(notionId) {
+  if (!notionId) return;
+  const res = await fetch(`${API_BASE}/notion-delete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: notionId }),
+  });
+  const result = await res.json();
+  if (!result.success) throw new Error(result.error || 'Delete failed');
+}
+
+init();
+</script>
+
+<!-- NAME PICKER OVERLAY -->
+<div id="namePicker" style="position:fixed;inset:0;background:rgba(0,30,60,.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:380px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,30,60,.25)">
+    <div style="font-size:22px;margin-bottom:4px">&#127965;&#65039;</div>
+    <div style="font-family:Arial,sans-serif;font-size:18px;font-weight:800;color:#134f82;margin-bottom:4px">Misfit Island Hub</div>
+    <div style="font-size:13px;color:#5a7a90;margin-bottom:20px">Who are you? We'll remember you next time.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="nameGrid"><button onclick="selectUser('Baji')" style="padding:10px 8px;border-radius:9px;border:1.5px solid #d0dde6;background:#f7f7f7;cursor:pointer;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2d4a60;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%" onmouseover="this.style.borderColor='#1b75bb';this.style.color='#1b75bb'" onmouseout="this.style.borderColor='#d0dde6';this.style.color='#2d4a60'"><div style="width:26px;height:26px;border-radius:50%;background:#134f82;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">BG</div>Baji</button><button onclick="selectUser('Cesar')" style="padding:10px 8px;border-radius:9px;border:1.5px solid #d0dde6;background:#f7f7f7;cursor:pointer;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2d4a60;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%" onmouseover="this.style.borderColor='#1b75bb';this.style.color='#1b75bb'" onmouseout="this.style.borderColor='#d0dde6';this.style.color='#2d4a60'"><div style="width:26px;height:26px;border-radius:50%;background:#1b75bb;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">CH</div>Cesar</button><button onclick="selectUser('Andrea')" style="padding:10px 8px;border-radius:9px;border:1.5px solid #d0dde6;background:#f7f7f7;cursor:pointer;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2d4a60;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%" onmouseover="this.style.borderColor='#1b75bb';this.style.color='#1b75bb'" onmouseout="this.style.borderColor='#d0dde6';this.style.color='#2d4a60'"><div style="width:26px;height:26px;border-radius:50%;background:#1b75bb;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">AW</div>Andrea</button><button onclick="selectUser('Cody')" style="padding:10px 8px;border-radius:9px;border:1.5px solid #d0dde6;background:#f7f7f7;cursor:pointer;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2d4a60;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%" onmouseover="this.style.borderColor='#1b75bb';this.style.color='#1b75bb'" onmouseout="this.style.borderColor='#d0dde6';this.style.color='#2d4a60'"><div style="width:26px;height:26px;border-radius:50%;background:#2d8fd4;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">CR</div>Cody</button><button onclick="selectUser('John')" style="padding:10px 8px;border-radius:9px;border:1.5px solid #d0dde6;background:#f7f7f7;cursor:pointer;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2d4a60;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%" onmouseover="this.style.borderColor='#1b75bb';this.style.color='#1b75bb'" onmouseout="this.style.borderColor='#d0dde6';this.style.color='#2d4a60'"><div style="width:26px;height:26px;border-radius:50%;background:#1b75bb;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">JC</div>John</button><button onclick="selectUser('Sarah')" style="padding:10px 8px;border-radius:9px;border:1.5px solid #d0dde6;background:#f7f7f7;cursor:pointer;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2d4a60;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%" onmouseover="this.style.borderColor='#1b75bb';this.style.color='#1b75bb'" onmouseout="this.style.borderColor='#d0dde6';this.style.color='#2d4a60'"><div style="width:26px;height:26px;border-radius:50%;background:#2d8fd4;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">SB</div>Sarah</button><button onclick="selectUser('Riley')" style="padding:10px 8px;border-radius:9px;border:1.5px solid #d0dde6;background:#f7f7f7;cursor:pointer;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2d4a60;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%" onmouseover="this.style.borderColor='#1b75bb';this.style.color='#1b75bb'" onmouseout="this.style.borderColor='#d0dde6';this.style.color='#2d4a60'"><div style="width:26px;height:26px;border-radius:50%;background:#1b75bb;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">RM</div>Riley</button><button onclick="selectUser('Christian')" style="padding:10px 8px;border-radius:9px;border:1.5px solid #d0dde6;background:#f7f7f7;cursor:pointer;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2d4a60;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%" onmouseover="this.style.borderColor='#1b75bb';this.style.color='#1b75bb'" onmouseout="this.style.borderColor='#d0dde6';this.style.color='#2d4a60'"><div style="width:26px;height:26px;border-radius:50%;background:#6B3FA0;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">CF</div>Christian</button><button onclick="selectUser('Rachel')" style="padding:10px 8px;border-radius:9px;border:1.5px solid #d0dde6;background:#f7f7f7;cursor:pointer;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2d4a60;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%" onmouseover="this.style.borderColor='#1b75bb';this.style.color='#1b75bb'" onmouseout="this.style.borderColor='#d0dde6';this.style.color='#2d4a60'"><div style="width:26px;height:26px;border-radius:50%;background:#4ea8c0;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">RH</div>Rachel</button><button onclick="selectUser('Jenn')" style="padding:10px 8px;border-radius:9px;border:1.5px solid #d0dde6;background:#f7f7f7;cursor:pointer;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2d4a60;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%" onmouseover="this.style.borderColor='#1b75bb';this.style.color='#1b75bb'" onmouseout="this.style.borderColor='#d0dde6';this.style.color='#2d4a60'"><div style="width:26px;height:26px;border-radius:50%;background:#4ea8c0;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">JF</div>Jenn</button><button onclick="selectUser('Patrick')" style="padding:10px 8px;border-radius:9px;border:1.5px solid #d0dde6;background:#f7f7f7;cursor:pointer;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2d4a60;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%" onmouseover="this.style.borderColor='#1b75bb';this.style.color='#1b75bb'" onmouseout="this.style.borderColor='#d0dde6';this.style.color='#2d4a60'"><div style="width:26px;height:26px;border-radius:50%;background:#2d8fd4;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">PR</div>Patrick</button><button onclick="selectUser('Sam')" style="padding:10px 8px;border-radius:9px;border:1.5px solid #d0dde6;background:#f7f7f7;cursor:pointer;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2d4a60;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%" onmouseover="this.style.borderColor='#1b75bb';this.style.color='#1b75bb'" onmouseout="this.style.borderColor='#d0dde6';this.style.color='#2d4a60'"><div style="width:26px;height:26px;border-radius:50%;background:#8fa8bb;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">SL</div>Sam</button></div>
+  </div>
+</div>
+
+</body>
+</html>
