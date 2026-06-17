@@ -61,14 +61,21 @@ exports.handler = async (event) => {
 Team members: Baji (BG - team lead), Cesar (CH), Andrea (AW), Cody (CR), John (JC), Sarah (SB), Riley (RM), Christian (CF), Rachel (RH), Jenn (JF), Patrick (PR), Sam (SL).
 Sections: Commercial, Product Development, Marketing, Conferences, Other.
 
-PRIORITY RULES — assign priority based on these criteria:
-- "Urgent": explicitly time-sensitive — due today, tonight, tomorrow, by end of this week, or deadline mentioned within ~2 days (e.g. "tonight", "by Friday", "before the call", "ASAP", "end of day")
-- "High": commercial opportunities with active customers or deals, conference deadlines, customer-facing commitments, anything with a named account or deal at risk
-- "Normal": internal tasks, follow-ups without hard deadlines, research, reporting, administrative tasks, anything not fitting Urgent or High
+PRIORITY RULES for action items:
+- "Urgent": explicitly time-sensitive, due today/tomorrow/within 2 days, or phrases like "ASAP", "end of day", "before the call"
+- "High": commercial opportunities with active customers or deals, conference deadlines, customer-facing commitments, named accounts at risk
+- "Normal": internal tasks, follow-ups without hard deadlines, research, reporting, administrative tasks
 
 DECISION MAKER RULES:
-- Identify who made or announced the decision from context (e.g. "Baji said we're going to...", "we decided..." in Baji's speaking turn = Baji)
-- If it's a group consensus with no clear owner, use empty string ""
+- Identify who made or announced the decision from context
+- If group consensus with no clear owner, use empty string ""
+
+AGENDA ITEM RULES — only include items explicitly deferred or clearly unfinished:
+- Items where someone said "next week", "come back to this", "put it on the agenda", or ran out of time
+- Topics raised but not discussed
+- Follow-ups requiring group discussion (not just one person's action item)
+- Do NOT include items fully resolved or that only need one person to act
+- Duration: 5 min for quick updates, 10 min for discussions, 15 min for presentations
 
 Extract the following. Return ONLY valid JSON, no markdown, no backticks, no explanation:
 {
@@ -78,13 +85,16 @@ Extract the following. Return ONLY valid JSON, no markdown, no backticks, no exp
   "decisions": [
     { "text": "what was decided", "section": "section", "decisionMaker": "first name or empty string" }
   ],
+  "agendaItems": [
+    { "topic": "topic for next week", "presenter": "first name or empty string", "section": "section", "duration": 5, "notes": "why this needs to be on next call" }
+  ],
   "speakers": ["first names of everyone who spoke"],
   "summary": "2-3 sentence summary of the call"
 }
 
 Transcript:
 ${transcript.slice(0, 70000)}`;
-      maxTokens = 2000;
+      maxTokens = 2500;
     }
 
     const result = await anthropicRequest(prompt, maxTokens);
