@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -2151,4 +2151,3 @@ init();
 
 </body>
 </html>
-function importAgendaItems(items){const weekOf=getWeekOf();items.forEach((item,i)=>{if(document.getElementById('eag-'+i)?.checked){const n={id:nextAgendaId++,topic:item.topic,presenter:item.presenter||'',section:item.section||'Other',duration:item.duration||5,notes:item.notes||''};agendaItems.push(n);saveToNotion('agenda',{topic:n.topic,presenter:n.presenter,section:n.section,duration:n.duration,notes:n.notes,weekOf}).then(id=>{if(id)n.notionId=id;});}});showToast('Agenda items added for next week');showPanel('agenda');renderAgenda();}
