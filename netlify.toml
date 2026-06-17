@@ -39,11 +39,16 @@
   to = "/.netlify/functions/notion-setup"
   status = 200
 
-# Pre-Call Reminder — every Friday at 15:00 UTC (7:00 AM Pacific Time)
+# Pre-Call Reminder -- every Friday at 15:00 UTC (7:00 AM Pacific Time)
 [functions."send-reminder"]
   schedule = "0 15 * * 5"
 
-# Agenda Email — every Monday and Tuesday at 15:00 UTC (7:00 AM Pacific Time)
+# Agenda Email -- every Monday at 15:00 UTC (7:00 AM Pacific Time)
 # Only sends if today matches the stored meeting date in Hub Settings
 [functions."send-agenda"]
-  schedule = "0 15 * * 1,2"
+  schedule = "0 15 * * 1"
+
+# Post-Call Summary Email -- every Tuesday at 15:00 UTC (7:00 AM Pacific Time)
+# Sends action items and decisions logged from the previous day's call
+[functions."send-summary"]
+  schedule = "0 15 * * 2"
