@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1003,11 +1003,10 @@ function renderActions() {
 
   container.innerHTML = filtered.map(a => {
     const isOverdue = a.due && new Date(a.due) < new Date() && a.status !== 'Done';
-const isStale=a.status!=='Done'&&a.createdDate&&(new Date()-new Date(a.createdDate))>604800000&&!a.due;
     const dueFmt = a.due ? new Date(a.due+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
     return `<div class="action-item status-${a.status.toLowerCase().replace(/\s+/g,'-')} priority-${(a.priority||'normal').toLowerCase()}" id="action-${a.id}" onclick="selectActionItem('${a.id}', this); openEditAction('${a.id}')">
       <div class="action-top">
-        <div class="action-task">${a.task}${isStale ? " <span style='font-size:9px;background:#fff3cd;color:#856404;border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:700'>NO UPDATE</span>" : ""}</div>
+        <div class="action-task">${a.task}</div>
         <button class="btn btn-secondary btn-sm" onclick="deleteAction('${a.id}')" style="flex-shrink:0;padding:4px 8px">&#x2715;</button>
       </div>
       <div class="action-meta">
@@ -1283,7 +1282,7 @@ function renderROS() {
 
   // Build full ordered list: standing items first, then agenda items by section
   const allItems = [
-    {topic:'Who needs what from the team?', presenter:'', duration:5, _standing:true, _section:'Standing'},
+    {topic:'Start transcript in Teams', presenter:'', duration:1, _standing:true, _section:'Standing'},
     {topic:'Action Item Review', presenter:'Baji', duration:10, _standing:true, _section:'Standing'},
     ...agendaItems.map(i => ({...i, _standing:false, _section:i.section}))
   ];
@@ -1708,29 +1707,6 @@ function importDecisions(items) {
   showToast('Decisions logged'); showPanel('decisions'); renderDecisions();
 }
 
-function importAgendaItems(items) {
-  const weekOf = getWeekOf();
-  items.forEach((item, i) => {
-    if (document.getElementById(eag-+i)?.checked) {
-      const newItem = {
-        id: nextAgendaId++,
-        topic: item.topic,
-        presenter: item.presenter || '',
-        section: item.section || 'Other',
-        duration: item.duration || 5,
-        notes: item.notes || '',
-      };
-      agendaItems.push(newItem);
-      saveToNotion('agenda', {
-        topic: newItem.topic, presenter: newItem.presenter,
-        section: newItem.section, duration: newItem.duration,
-        notes: newItem.notes, weekOf,
-      }).then(id => { if (id) newItem.notionId = id; });
-    }
-  });
-  showToast('Agenda items added for next week'); showPanel('agenda'); renderAgenda();
-}
-
 // ═══════════════════════════════════════
 // EMAIL TEMPLATES
 // ═══════════════════════════════════════
@@ -2009,7 +1985,6 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
 
 // Current user (set by name picker)
 let currentUser = localStorage.getItem('misfit_user') || null;
-window.addEventListener('DOMContentLoaded', () => { if (currentUser) { const p = document.getElementById('namePicker'); if(p) p.style.display='none'; } });
 
 // Current week date (Monday of current week)
 function getWeekOf() {
@@ -2069,7 +2044,6 @@ async function loadFromNotion() {
         due: a.due,
         notes: a.notes,
         created: a.created,
-        createdDate: a.created ? a.created.split('T')[0] : null,
         notionId: a.id,
       }));
     }
@@ -2176,4 +2150,4 @@ init();
 </div>
 
 </body>
-</html>let _dragSrcId=null;function agendaDragStart(e){_dragSrcId=e.currentTarget.dataset.id;e.currentTarget.style.opacity="0.4";}function agendaDragOver(e){e.preventDefault();e.currentTarget.style.borderColor="var(--blue)";}function agendaDragEnd(e){e.currentTarget.style.opacity="";}function agendaDrop(e){e.preventDefault();var t=e.currentTarget.dataset.id;if(!_dragSrcId||_dragSrcId===t)return;var si=agendaItems.findIndex(function(i){return String(i.id)===String(_dragSrcId);});var ti=agendaItems.findIndex(function(i){return String(i.id)===String(t);});if(si<0||ti<0)return;var m=agendaItems.splice(si,1)[0];agendaItems.splice(ti,0,m);_dragSrcId=null;renderAgenda();renderROS();}
+</html>
