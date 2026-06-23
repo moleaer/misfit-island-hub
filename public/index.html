@@ -815,7 +815,12 @@ function agendaItemHTML(item) {
   const notes = item.notes ? '<span class="badge badge-teal">Notes</span>' : '';
   const dur = (item.duration || '?') + ' min';
   return [
-    '<div class="agenda-item ' + (item.presenter ? 'has-presenter' : '') + '">',
+    '<div class="agenda-item ' + (item.presenter ? 'has-presenter' : '') + '" draggable="true" data-agenda-id="' + item.id + '" data-section="' + item.section + '"',
+    ' ondragstart="agendaDragStart(event,\'' + item.id + '\')"',
+    ' ondragover="agendaDragOver(event)"',
+    ' ondrop="agendaDrop(event,\'' + item.id + '\')"',
+    ' ondragend="agendaDragEnd(event)">',
+    '<div style="cursor:grab;color:var(--text-xlt);font-size:16px;padding:0 8px 0 0;flex-shrink:0;user-select:none" title="Drag to reorder">&#8942;&#8942;</div>',
     '<div class="agenda-item-left" onclick="openEditAgendaItem(window._aid[' + idx + '])" style="cursor:pointer;flex:1">',
     '<div class="agenda-item-topic">' + (item.topic || '') + '</div>',
     '<div class="agenda-item-meta">' + presenter + notes + '</div>',
@@ -825,6 +830,35 @@ function agendaItemHTML(item) {
     '<button onclick="event.stopPropagation();deleteAgendaItem(window._aid[' + idx + '])" style="background:none;border:none;cursor:pointer;color:var(--text-xlt);font-size:13px;padding:2px 6px;line-height:1;border-radius:4px" title="Remove">\u2715</button>',
     '</div></div>'
   ].join('');
+}
+
+let _dragAgendaId = null;
+function agendaDragStart(e, id) {
+  _dragAgendaId = String(id);
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => e.currentTarget && (e.currentTarget.style.opacity = '0.4'), 0);
+}
+function agendaDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.style.outline = '2px dashed var(--blue)';
+}
+function agendaDrop(e, targetId) {
+  e.preventDefault();
+  e.currentTarget.style.outline = '';
+  if (!_dragAgendaId || String(_dragAgendaId) === String(targetId)) return;
+  const fromItem = agendaItems.find(i => String(i.id) === String(_dragAgendaId));
+  const toItem   = agendaItems.find(i => String(i.id) === String(targetId));
+  if (!fromItem || !toItem || fromItem.section !== toItem.section) return;
+  const fromIdx = agendaItems.indexOf(fromItem);
+  const toIdx   = agendaItems.indexOf(toItem);
+  agendaItems.splice(fromIdx, 1);
+  agendaItems.splice(toIdx, 0, fromItem);
+  renderAgenda(); renderROS();
+}
+function agendaDragEnd(e) {
+  document.querySelectorAll('.agenda-item').forEach(el => { el.style.opacity = ''; el.style.outline = ''; });
+  _dragAgendaId = null;
 }
 function openAddAgendaItem(section) {
   editingAgendaItem = null;
@@ -1004,6 +1038,8 @@ function renderActions() {
   container.innerHTML = filtered.map(a => {
     const isOverdue = a.due && new Date(a.due) < new Date() && a.status !== 'Done';
     const dueFmt = a.due ? new Date(a.due+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+    const daysSinceEdit = a.lastEdited ? Math.floor((Date.now() - new Date(a.lastEdited)) / 86400000) : null;
+    const isStale = daysSinceEdit !== null && daysSinceEdit >= 7 && a.status !== 'Done';
     return `<div class="action-item status-${a.status.toLowerCase().replace(/\s+/g,'-')} priority-${(a.priority||'normal').toLowerCase()}" id="action-${a.id}" onclick="selectActionItem('${a.id}', this); openEditAction('${a.id}')">
       <div class="action-top">
         <div class="action-task">${a.task}</div>
@@ -1013,6 +1049,7 @@ function renderActions() {
         <span class="action-owner">&#128100; ${a.owner || 'Unassigned'}</span>
         ${a.section ? `<span class="badge badge-gray">${a.section}</span>` : ''}
         ${dueFmt ? `<span class="action-due ${isOverdue?'overdue':''}">&#128197; ${isOverdue?'Overdue &middot; ':''}${dueFmt}</span>` : ''}
+        ${isStale ? `<span class="badge" style="background:var(--red);color:#fff;font-size:9px;letter-spacing:.04em">NO UPDATE</span>` : ''}
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div>
@@ -1117,6 +1154,7 @@ function updateActionStatus(id, status) {
   const item = actionItems.find(a => String(a.id) === String(id));
   if (item) {
     item.status = status;
+    item.lastEdited = new Date().toISOString();
     renderActions();
     const nid = item.notionId || item.id;
     if (nid) {
@@ -1156,6 +1194,16 @@ function deleteAction(id) {
 // DECISIONS
 // ═══════════════════════════════════════
 function renderDecisions() {
+  // Auto-archive decisions older than 30 days
+  const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const toArchive = decisions.filter(d => d.date && new Date(d.date+'T12:00:00') < thirtyDaysAgo);
+  if (toArchive.length) {
+    toArchive.forEach(d => {
+      const nid = d.notionId || d.id;
+      if (nid) deleteFromNotion(nid).catch(() => {});
+    });
+    decisions = decisions.filter(d => !toArchive.includes(d));
+  }
   const container = document.getElementById('decisionsList');
   let filtered = currentDecisionFilter === 'all' ? [...decisions] : decisions.filter(d => d.section === currentDecisionFilter);
   if (decisionPersonFilter !== 'all') filtered = filtered.filter(d => d.decisionMaker === decisionPersonFilter);
@@ -1282,7 +1330,7 @@ function renderROS() {
 
   // Build full ordered list: standing items first, then agenda items by section
   const allItems = [
-    {topic:'Start transcript in Teams', presenter:'', duration:1, _standing:true, _section:'Standing'},
+    {topic:'Who needs what from the team?', presenter:'Baji', duration:5, _standing:true, _section:'Standing'},
     {topic:'Action Item Review', presenter:'Baji', duration:10, _standing:true, _section:'Standing'},
     ...agendaItems.map(i => ({...i, _standing:false, _section:i.section}))
   ];
@@ -1450,45 +1498,62 @@ async function analyzeTranscript() {
   document.getElementById('aiThinking').classList.remove('hidden');
   document.getElementById('extractResults').classList.add('hidden');
 
-  const prompt = `You are analyzing a Microsoft Teams meeting transcript from the Misfit Island Water Process weekly Monday call at Moleaer.
-
-${TEAM_CONTEXT}
-
-Extract the following from the transcript. Return ONLY valid JSON:
-{
-  "actionItems": [
-    { "task": "...", "owner": "first name only", "section": "Commercial|Product Development|Marketing|Conferences|Other", "priority": "urgent|high|normal" }
-  ],
-  "decisions": [
-    { "text": "...", "section": "Commercial|Product Development|Marketing|Conferences|Other", "decisionMaker": "first name or null" }
-  ],
-  "speakers": ["first names of everyone who spoke"],
-  "summary": "2-3 sentence summary of the call"
-}
-
-Transcript:
-${transcriptText.slice(0,6000)}`;
-
   // Try to extract meeting date from transcript text
   const dateMatch = transcriptText.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})|((January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4})/i);
   if (dateMatch) {
     try { transcriptMeetingDate = new Date(dateMatch[0]).toISOString().split('T')[0]; } catch(e) {}
   }
 
+  const prompt = `You are analyzing a Microsoft Teams meeting transcript from the Misfit Island Water Process weekly Monday call at Moleaer.
+
+${TEAM_CONTEXT}
+
+Extract the following from the transcript. Return ONLY valid JSON with no markdown or commentary:
+{
+  "actionItems": [
+    { "task": "...", "owner": "first name only", "section": "Commercial|Product Development|Marketing|Conferences|Other", "priority": "Urgent|High|Normal" }
+  ],
+  "decisions": [
+    { "text": "...", "section": "Commercial|Product Development|Marketing|Conferences|Other", "decisionMaker": "first name or null" }
+  ],
+  "agendaSuggestions": [
+    { "topic": "...", "presenter": "first name only or empty string", "section": "Commercial|Product Development|Marketing|Conferences|Other", "duration": 5 }
+  ],
+  "nextMeeting": { "date": "YYYY-MM-DD or null", "time": "HH:MM or null", "cancelled": false },
+  "speakers": ["first names of everyone who spoke"],
+  "summary": "2-3 sentence summary of the call"
+}
+
+For agendaSuggestions: extract topics explicitly mentioned as items for the NEXT call. If none are mentioned, return an empty array.
+For nextMeeting: only populate date/time if explicitly scheduled in the transcript.
+Priority must be exactly "Urgent", "High", or "Normal" — capitalised exactly as shown.
+For section on decisions and actionItems, use this guide:
+  Commercial = customer deals, sales, pricing, distributors, Xylem, specific accounts
+  Product Development = product specs, firmware, tech notes, XDB/XTB/Neo, manufacturing
+  Marketing = WEFTEC, case studies, social media, press releases, campaigns, branding
+  Conferences = trade shows, conference booths, IWC, WEFTEC booth
+  Other = internal processes, tools, admin, IT, hub, SharePoint, HubSpot
+
+Transcript:
+${transcriptText.slice(0, 12000)}`;
+
   try {
-    const res = await fetch('/.netlify/functions/analyze-transcript', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ transcript: transcriptText }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
     const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || 'Analysis failed');
-    const raw = data.result || '{}';
+    if (!res.ok || data.error) throw new Error(data.error?.message || 'Analysis failed');
+    const raw = data.content?.[0]?.text || '{}';
     const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
-    // Store next meeting scheduling info
     if (parsed.nextMeeting) nextMeetingData = parsed.nextMeeting;
 
-    // Normalize priority to exact Title Case values Notion expects
+    // Normalize priority just in case
     const normPriority = p => {
       if (!p) return 'Normal';
       const l = p.toLowerCase();
@@ -1541,12 +1606,25 @@ function renderExtractResults(data) {
       </div>`;
     });
     html += `<div class="btn-row"><button class="btn btn-primary btn-sm" onclick='importDecisions(${JSON.stringify(data.decisions)})'>Import Checked</button></div></div>`;
+  }
+
+  if (data.agendaSuggestions?.length) {
+    html += `<div class="extract-card" style="margin-top:10px"><div class="extract-hdr"><span style="font-size:20px">&#128203;</span><div class="extract-title">Next Week Agenda Suggestions (${data.agendaSuggestions.length})</div></div>`;
+    data.agendaSuggestions.forEach((a,i) => {
+      html += `<div class="extract-item">
+        <input type="checkbox" class="extract-check" id="es-${i}" checked>
+        <div class="extract-text"><strong>${a.topic}</strong>${a.presenter ? ` &middot; <em>${a.presenter}</em>` : ''}</div>
+        <span class="badge badge-teal">${a.section}</span>
+      </div>`;
+    });
+    html += `<div class="btn-row"><button class="btn btn-primary btn-sm" onclick='importAgendaSuggestions(${JSON.stringify(data.agendaSuggestions)})'>Add to Next Week Agenda</button></div></div>`;
+  }
+
   html += `<div style="margin-top:16px;padding:14px;background:var(--offwhite);border-radius:10px;border:1.5px solid var(--border)">
     <div style="font-size:13px;font-weight:700;color:var(--text-dark);margin-bottom:6px">&#127937; Close Meeting</div>
     <div style="font-size:12px;color:var(--text-mid);margin-bottom:10px">Archive the current agenda so it starts fresh next week. Only do this after importing actions and decisions.</div>
     <button class="btn btn-secondary" onclick="archiveCurrentAgenda()" style="width:100%">&#128451; Archive Agenda &amp; Close Meeting</button>
   </div>`;
-  }
 
   container.innerHTML = html;
 }
@@ -1691,20 +1769,54 @@ function importActions(items) {
   showToast('Action items imported'); showPanel('actions'); renderActions();
 }
 
+function inferSection(text) {
+  const t = (text || '').toLowerCase();
+  if (/deal|account|customer|xylem|distributor|pric|proposal|bid|close|po\b|sales|revenue|contract/.test(t)) return 'Commercial';
+  if (/product|firmware|spec|xtb|xdb|neo|model|tech note|hardware|manufacturing|surfer|controller/.test(t)) return 'Product Development';
+  if (/weftec|case study|social|press release|campaign|branding|marketing|content|linkedin/.test(t)) return 'Marketing';
+  if (/conference|booth|iwc|trade show/.test(t)) return 'Conferences';
+  return 'Other';
+}
+
 function importDecisions(items) {
   const today = new Date().toISOString().split('T')[0];
   items.forEach((d,i) => {
     if (document.getElementById(`ed-${i}`)?.checked) {
-      decisions.push({id: nextDecisionId++, text: d.text, section: d.section||'Other', date: today, fromTranscript: true});
+      const section = d.section && d.section !== 'Other' ? d.section : inferSection(d.text);
+      decisions.push({id: nextDecisionId++, text: d.text, section, date: today, fromTranscript: true});
     }
   });
   const importDate = new Date().toISOString().split('T')[0];
   decisions.filter(d => !d.notionId).forEach(d => {
+    const section = d.section && d.section !== 'Other' ? d.section : inferSection(d.text);
     saveToNotion('decisions', {
-      text: d.text, section: d.section, date: importDate, fromTranscript: true,
+      text: d.text, section, date: importDate, fromTranscript: true,
     }).then(id => { if (id) d.notionId = id; });
   });
   showToast('Decisions logged'); showPanel('decisions'); renderDecisions();
+}
+
+function importAgendaSuggestions(items) {
+  const weekOf = document.getElementById('meetingDate')?.value || getWeekOf();
+  items.forEach((item, i) => {
+    if (document.getElementById(`es-${i}`)?.checked) {
+      const newItem = {
+        id: nextAgendaId++,
+        topic: item.topic,
+        presenter: item.presenter || '',
+        section: item.section || 'Other',
+        duration: item.duration || 5,
+        notes: '',
+      };
+      agendaItems.push(newItem);
+      saveToNotion('agenda', { ...newItem, weekOf })
+        .then(id => { if (id) newItem.notionId = id; });
+    }
+  });
+  showToast('Agenda items added for next week');
+  showPanel('agenda');
+  renderAgenda();
+  renderROS();
 }
 
 // ═══════════════════════════════════════
@@ -1872,13 +1984,19 @@ Suggest 5-7 specific actionable agenda items. Assign each to the most relevant o
 {"suggestions":[{"topic":"...","section":"...","duration":5,"presenter":"first name","why":"one-line reason"}]}`;
 
   try {
-    const res = await fetch('/.netlify/functions/analyze-transcript', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ transcript: prompt, mode: 'suggest' })
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
     const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || 'Suggest failed');
-    const parsed = JSON.parse((data.result||'{}').replace(/```json|```/g,'').trim());
+    if (!res.ok || data.error) throw new Error(data.error?.message || 'Suggest failed');
+    const raw = data.content?.[0]?.text || '{}';
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
     renderAISuggestions(parsed.suggestions||[]);
   } catch(e) {
     document.getElementById('aiSuggestLoading').classList.add('hidden');
@@ -2044,6 +2162,7 @@ async function loadFromNotion() {
         due: a.due,
         notes: a.notes,
         created: a.created,
+        lastEdited: a.lastEdited || a.created || null,
         notionId: a.id,
       }));
     }
