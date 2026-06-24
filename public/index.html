@@ -1414,15 +1414,20 @@ function renderROS() {
     const isDone = rosCompleted.has(idx);
     const firstUnchecked = allItems.findIndex((_,i) => !rosCompleted.has(i));
     const isCurrent = idx === firstUnchecked;
-    html += `<div class="ros-item ${isCurrent?'current':''} ${isDone?'done':''}">
+    const rosClickable = !item._standing;
+    html += `<div class="ros-item ${isCurrent?'current':''} ${isDone?'done':''}" ${rosClickable ? 'onclick="openEditAgendaItem(\''+ item.id +'\')" style="cursor:pointer" title="Click to view or edit"' : ''}>
       <input type="checkbox" class="ros-check" ${isDone?'checked':''} onchange="toggleRosItem(${idx})" onclick="event.stopPropagation()">
       <div class="ros-time">${timeStr}</div>
       <div style="flex:1">
         <div class="ros-topic ${isDone?'ros-topic-done':''}">${item.topic}</div>
         ${item.presenter ? `<div class="ros-presenter">&#128100; ${item.presenter}</div>` : ''}
-        ${item._standing && item.topic === 'Action Item Review' ? `<button onclick="goToActionsFromROS()" style="margin-top:6px;padding:5px 12px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.02em">&#9989; Review Actions &rarr;</button>` : ''}
+        ${item.notes ? `<div style="font-size:11px;color:var(--text-mid);margin-top:4px;font-style:italic">&#128203; ${item.notes}</div>` : ''}
+        ${item._standing && item.topic === 'Action Item Review' ? `<button onclick="event.stopPropagation();goToActionsFromROS()" style="margin-top:6px;padding:5px 12px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.02em">&#9989; Review Actions &rarr;</button>` : ''}
       </div>
-      <div class="ros-dur">${item.duration}m</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="ros-dur">${item.duration}m</div>
+        ${rosClickable ? '<span style="font-size:13px;color:var(--text-xlt)" title="Edit">&#9998;</span>' : ''}
+      </div>
     </div>`;
     totalMin += parseInt(item.duration)||0;
   });
