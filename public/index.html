@@ -411,6 +411,7 @@
             <select id="actionPersonFilter" class="inp" style="font-size:13px;padding:4px 8px;height:auto;width:auto;min-width:90px;max-width:160px" onchange="filterActionPerson(this.value)">
               <option value="all">Everyone</option>
             </select>
+            <button id="mineFilterBtn" class="chip" onclick="filterActionPerson(currentUser||'all');document.getElementById('actionPersonFilter').value=currentUser||'all';this.classList.toggle('active',actionPersonFilter===currentUser)" style="font-size:11px;padding:3px 10px;white-space:nowrap">⭐ Mine</button>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <label style="font-size:11px;font-weight:700;color:var(--text-xlt);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Section</label>
@@ -655,7 +656,7 @@
 // ═══════════════════════════════════════
 // TEAM
 // ═══════════════════════════════════════
-const SECTIONS = ['Commercial','Product Development','Marketing','Conferences','Other'];
+let SECTIONS = ['Commercial','Product Development','Marketing','Conferences','Other'];
 
 const TEAM_MEMBERS = [
   {name:'Baji',    initials:'BG', role:'Team Lead · Corporate Accounts',          group:'required', color:'#134f82'},
@@ -786,15 +787,66 @@ function renderAgenda() {
   `;
   container.appendChild(standingWrap);
 
-  // Regular sections
+  // Regular sections — draggable at section level
   SECTIONS.forEach(section => {
     const items = agendaItems.filter(i => i.section === section);
     const totalMin = items.reduce((s,i) => s + (parseInt(i.duration)||0), 0);
     const wrap = document.createElement('div');
     wrap.className = 'agenda-section';
+    wrap.setAttribute('draggable', 'true');
+    wrap.setAttribute('data-section-name', section);
+    wrap.addEventListener('dragstart', (e) => {
+      if (e.target.closest('.agenda-item')) return; // let item drag handle it
+      e.stopPropagation();
+      _dragSection = section;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => wrap.style.opacity = '0.4', 0);
+    });
+    wrap.addEventListener('dragover', (e) => {
+      if (_dragSection && !_dragAgendaId) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        wrap.style.outline = '2px dashed var(--blue)';
+      } else if (_dragAgendaId) {
+        e.preventDefault(); // allow cross-section item drop on section body
+      }
+    });
+    wrap.addEventListener('dragleave', () => { wrap.style.outline = ''; });
+    wrap.addEventListener('drop', (e) => {
+      wrap.style.outline = '';
+      wrap.style.opacity = '';
+      if (_dragSection && _dragSection !== section) {
+        // Reorder sections
+        e.preventDefault(); e.stopPropagation();
+        const fromIdx = SECTIONS.indexOf(_dragSection);
+        const toIdx   = SECTIONS.indexOf(section);
+        SECTIONS.splice(fromIdx, 1);
+        SECTIONS.splice(toIdx, 0, _dragSection);
+        _dragSection = null;
+        renderAgenda(); renderROS();
+      } else if (_dragAgendaId) {
+        // Cross-section item drop — reassign to this section
+        e.preventDefault();
+        const fromItem = agendaItems.find(i => String(i.id) === String(_dragAgendaId));
+        if (fromItem && fromItem.section !== section) {
+          fromItem.section = section;
+          renderAgenda(); renderROS();
+        }
+        _dragAgendaId = null;
+      }
+    });
+    wrap.addEventListener('dragend', () => {
+      wrap.style.opacity = '';
+      wrap.style.outline = '';
+      _dragSection = null;
+      document.querySelectorAll('.agenda-section').forEach(el => { el.style.outline = ''; el.style.opacity = ''; });
+    });
     wrap.innerHTML = `
-      <div class="agenda-section-hdr regular">
-        <div class="agenda-section-name">${section}</div>
+      <div class="agenda-section-hdr regular" style="cursor:grab" title="Drag to reorder section">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="color:rgba(255,255,255,.5);font-size:14px;user-select:none">&#8942;&#8942;</span>
+          <div class="agenda-section-name">${section}</div>
+        </div>
         <div class="agenda-section-time">${totalMin} min</div>
       </div>
       <div id="sec-${section.replace(/\s+/g,'-')}">
@@ -833,9 +885,12 @@ function agendaItemHTML(item) {
 }
 
 let _dragAgendaId = null;
+let _dragSection = null;
 function agendaDragStart(e, id) {
+  _dragSection = null; // item drag, not section drag
   _dragAgendaId = String(id);
   e.dataTransfer.effectAllowed = 'move';
+  e.stopPropagation();
   setTimeout(() => e.currentTarget && (e.currentTarget.style.opacity = '0.4'), 0);
 }
 function agendaDragOver(e) {
@@ -845,20 +900,26 @@ function agendaDragOver(e) {
 }
 function agendaDrop(e, targetId) {
   e.preventDefault();
+  e.stopPropagation();
   e.currentTarget.style.outline = '';
   if (!_dragAgendaId || String(_dragAgendaId) === String(targetId)) return;
   const fromItem = agendaItems.find(i => String(i.id) === String(_dragAgendaId));
   const toItem   = agendaItems.find(i => String(i.id) === String(targetId));
-  if (!fromItem || !toItem || fromItem.section !== toItem.section) return;
+  if (!fromItem || !toItem) return;
+  // Cross-section drop: reassign section to match target
+  fromItem.section = toItem.section;
   const fromIdx = agendaItems.indexOf(fromItem);
   const toIdx   = agendaItems.indexOf(toItem);
   agendaItems.splice(fromIdx, 1);
   agendaItems.splice(toIdx, 0, fromItem);
+  _dragAgendaId = null;
   renderAgenda(); renderROS();
 }
 function agendaDragEnd(e) {
   document.querySelectorAll('.agenda-item').forEach(el => { el.style.opacity = ''; el.style.outline = ''; });
+  document.querySelectorAll('.agenda-section').forEach(el => { el.style.opacity = ''; el.style.outline = ''; });
   _dragAgendaId = null;
+  _dragSection = null;
 }
 function openAddAgendaItem(section) {
   editingAgendaItem = null;
@@ -975,6 +1036,8 @@ function filterActionSection(section) {
 
 function filterActionPerson(person) {
   actionPersonFilter = person;
+  const mineBtn = document.getElementById('mineFilterBtn');
+  if (mineBtn) mineBtn.classList.toggle('active', person === currentUser);
   renderActions();
 }
 
