@@ -477,6 +477,13 @@
 
   <!-- TRANSCRIPT -->
   <div class="panel" id="panel-transcript">
+    <div id="pendingTranscriptBanner" style="display:none;background:linear-gradient(135deg,#3673b4,#1a4d8f);color:#fff;border-radius:12px;padding:16px 20px;margin-bottom:14px;align-items:center;justify-content:space-between;gap:16px">
+      <div>
+        <div style="font-weight:700;font-size:14px">&#129302; Transcript ready from today's call</div>
+        <div style="font-size:12px;opacity:.8;margin-top:2px">Automatically pulled from SharePoint — click Analyze to extract actions &amp; decisions.</div>
+      </div>
+      <button onclick="analyzeTranscript()" style="background:#fff;color:#3673b4;border:none;border-radius:8px;padding:8px 18px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap">Analyze Now &#8594;</button>
+    </div>
     <div class="card" style="margin-top:14px">
       <div class="card-hdr">
         <div class="card-ico">&#128196;</div>
@@ -2270,6 +2277,15 @@ async function loadFromNotion() {
     if (data.settings?.meetingTime) {
       document.getElementById('meetingTime').value = data.settings.meetingTime;
       localStorage.setItem('mi_meetingTime', data.settings.meetingTime);
+    }
+
+    // Auto-load pending transcript if staged by automation for today
+    const today = new Date().toISOString().split('T')[0];
+    if (data.settings?.pendingTranscript && data.settings?.pendingTranscriptDate === today) {
+      transcriptText = data.settings.pendingTranscript;
+      const banner = document.getElementById('pendingTranscriptBanner');
+      if (banner) banner.style.display = 'flex';
+      console.log('Pending transcript auto-loaded:', transcriptText.length, 'chars');
     }
     renderAgenda();
     renderActions();
