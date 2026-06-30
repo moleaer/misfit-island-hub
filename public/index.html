@@ -337,7 +337,6 @@
     <button class="tab active" onclick="showPanel('agenda')" id="tab-agenda"><div class="t-ico">&#128203;</div><div class="t-lbl">Agenda</div></button>
     <button class="tab" onclick="showPanel('actions')" id="tab-actions"><div class="t-ico">&#9989;</div><div class="t-lbl">Actions</div></button>
     <button class="tab" onclick="showPanel('runofshow')" id="tab-runofshow"><div class="t-ico">&#127897;&#65039;</div><div class="t-lbl">Run of Show</div></button>
-    <button class="tab" onclick="showPanel('email')" id="tab-email"><div class="t-ico">&#9993;&#65039;</div><div class="t-lbl">Email</div></button>
     <button class="tab" onclick="showPanel('transcript')" id="tab-transcript"><div class="t-ico">&#128196;</div><div class="t-lbl">Transcript</div></button>
     <button class="tab" onclick="showPanel('decisions')" id="tab-decisions"><div class="t-ico">&#127919;</div><div class="t-lbl">Decisions</div></button>
   </div>
@@ -1764,63 +1763,14 @@ async function archiveCurrentAgenda() {
     renderEmailTemplates();
   }
 
-  // Build and send post-call summary email automatically
-  const dateFmt = (() => {
-    const d = document.getElementById('meetingDate')?.value;
-    return d ? new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) : 'Monday';
-  })();
-  const portal = 'https://water-process-hub.netlify.app';
-  const openItems = actionItems.filter(a => a.status !== 'Done');
-  const urgentItems = openItems.filter(a => a.priority === 'Urgent');
-  const highItems = openItems.filter(a => a.priority === 'High');
-  const normalItems = openItems.filter(a => a.priority === 'Normal');
-  const NL = '\n';
-
-  let emailBody = 'Hi team,' + NL + NL;
-  emailBody += 'Here is the summary from the Misfit Island call on ' + dateFmt + ':' + NL + NL;
-
-  if (nextMeetingData && nextMeetingData.cancelled) {
-    emailBody += '*** NOTE: Next call is cancelled/skipped ***' + NL + NL;
-  } else if (newDate) {
-    const nextFmt = new Date(newDate+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-    const t = document.getElementById('meetingTime')?.value || '07:30';
-    const [th,tm] = t.split(':').map(Number);
-    const nextTime = (th%12||12) + ':' + String(tm).padStart(2,'0') + ' ' + (th>=12?'PM':'AM') + ' Pacific Time';
-    emailBody += 'Next call: ' + nextFmt + ' at ' + nextTime + NL + NL;
+  // Signal that this week's review is complete — triggers automated post-call summary email
+  const today = new Date().toISOString().split('T')[0];
+  try {
+    await saveSetting('readyForSummary', today);
+    showToast('Agenda archived. Post-call summary will send automatically within 15 minutes.');
+  } catch(e) {
+    showToast('Agenda archived. (Could not flag summary email — check connection.)');
   }
-
-  emailBody += '── OPEN ACTION ITEMS (' + openItems.length + ') ──' + NL;
-  if (urgentItems.length) {
-    emailBody += NL + 'Urgent' + NL;
-    urgentItems.forEach(a => { emailBody += '  - ' + a.task + ' (' + (a.owner||'Unassigned') + ')' + NL; });
-  }
-  if (highItems.length) {
-    emailBody += NL + 'High' + NL;
-    highItems.forEach(a => { emailBody += '  - ' + a.task + ' (' + (a.owner||'Unassigned') + ')' + NL; });
-  }
-  if (normalItems.length) {
-    emailBody += NL + 'Normal' + NL;
-    normalItems.forEach(a => { emailBody += '  - ' + a.task + ' (' + (a.owner||'Unassigned') + ')' + NL; });
-  }
-
-  emailBody += NL + '── DECISIONS ──' + NL;
-  if (decisions.length) {
-    decisions.forEach(d => {
-      emailBody += '  - ' + d.text + (d.decisionMaker ? ' (' + d.decisionMaker + ')' : '') + NL;
-    });
-  } else {
-    emailBody += '  No decisions logged.' + NL;
-  }
-
-  emailBody += NL + 'Update your status in the portal: ' + portal;
-
-  const toList = ['baji@moleaer.com','cesar@moleaer.com','andrea@moleaer.com','cody@moleaer.com','johnc@moleaer.com','sarah@moleaer.com','riley@moleaer.com','christian@moleaer.com','rachel@moleaer.com','jenn.fisher@moleaer.com','patrick.ryan@moleaer.com','sam@moleaer.com'].join(';');
-  const emailSubject = 'Misfit Island Post-Call Summary — ' + dateFmt;
-
-  window.open('mailto:' + encodeURIComponent(toList) + '?subject=' + encodeURIComponent(emailSubject) + '&body=' + encodeURIComponent(emailBody), '_blank');
-
-  const nextDateMsg = skipUpdate ? '' : (' Next meeting set to ' + new Date(newDate+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) + '.');
-  showToast('Agenda archived.' + nextDateMsg);
 }
 
 function importActions(items) {
@@ -2304,11 +2254,20 @@ async function loadFromNotion() {
 }
 
 async function saveSetting(key, value) {
-  if (!settingsPageIds[key]) return; // settings DB not configured yet
-  try {
-    await saveToNotion('settings', { value }, settingsPageIds[key]);
-  } catch(e) {
-    console.warn('Could not save setting:', key, e.message);
+  if (settingsPageIds[key]) {
+    try {
+      await saveToNotion('settings', { value }, settingsPageIds[key]);
+    } catch(e) {
+      console.warn('Could not save setting:', key, e.message);
+    }
+  } else {
+    // New setting key — create the row
+    try {
+      const id = await saveToNotion('settings', { key, value });
+      if (id) settingsPageIds[key] = id;
+    } catch(e) {
+      console.warn('Could not create setting:', key, e.message);
+    }
   }
 }
 
