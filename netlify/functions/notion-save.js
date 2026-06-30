@@ -5,6 +5,7 @@ const DB = {
   actions:   process.env.NOTION_DB_ACTIONS,
   agenda:    process.env.NOTION_DB_AGENDA,
   decisions: process.env.NOTION_DB_DECISIONS,
+  settings:  process.env.NOTION_DB_SETTINGS,
 };
 
 function notionRequest(method, path, body) {
@@ -84,14 +85,30 @@ exports.handler = async (event) => {
   try {
     const { type, id, data } = JSON.parse(event.body);
 
-    // Settings: simple key/value update by page ID
+    // Settings: simple key/value update by page ID, or create new key/value row if no ID given
     if (type === 'settings') {
-      const props = { 'Value': { rich_text: [{ text: { content: String(data.value || '') } }] } };
-      const result = await notionRequest('PATCH', `/v1/pages/${id}`, { properties: props });
-      if (result.object === 'error') {
-        return { statusCode: 400, headers, body: JSON.stringify({ error: result.message, code: result.code }) };
+      if (id) {
+        const props = { 'Value': { rich_text: [{ text: { content: String(data.value || '') } }] } };
+        const result = await notionRequest('PATCH', `/v1/pages/${id}`, { properties: props });
+        if (result.object === 'error') {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: result.message, code: result.code }) };
+        }
+        return { statusCode: 200, headers, body: JSON.stringify({ id: result.id, success: true }) };
+      } else {
+        // Create new settings row with Key + Value
+        const props = {
+          'Key': { title: [{ text: { content: String(data.key || '') } }] },
+          'Value': { rich_text: [{ text: { content: String(data.value || '') } }] },
+        };
+        const result = await notionRequest('POST', '/v1/pages', {
+          parent: { database_id: DB.settings },
+          properties: props,
+        });
+        if (result.object === 'error') {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: result.message, code: result.code }) };
+        }
+        return { statusCode: 200, headers, body: JSON.stringify({ id: result.id, success: true }) };
       }
-      return { statusCode: 200, headers, body: JSON.stringify({ id: result.id, success: true }) };
     }
 
     const properties = buildProps(type, data);
