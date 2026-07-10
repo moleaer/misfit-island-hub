@@ -613,7 +613,7 @@
         </select>
       </div>
     </div>
-    <div class="btn-row"><button class="btn btn-primary btn-full" onclick="saveAction()">Save Action Item</button></div>
+    <div class="field mt8"><div class="lbl">Notes (optional)</div><textarea class="inp" id="action-notes" placeholder="Background, context, blockers&hellip;"></textarea></div><div class="btn-row"><button class="btn btn-primary btn-full" onclick="saveAction()">Save Action Item</button></div>
   </div>
 </div>
 
@@ -640,7 +640,7 @@
       </div>
       <div class="field" style="margin-bottom:0"><div class="lbl">Date</div><input type="date" class="inp" id="decision-date"></div>
     </div>
-    <div class="btn-row"><button class="btn btn-primary btn-full" onclick="saveDecision()">Save Decision</button></div>
+    <div class="field mt8"><div class="lbl">Notes (optional)</div><textarea class="inp" id="decision-notes" placeholder="Background, context, rationale&hellip;"></textarea></div><div class="btn-row"><button class="btn btn-primary btn-full" onclick="saveDecision()">Save Decision</button></div>
   </div>
 </div>
 
@@ -1118,7 +1118,7 @@ function renderActions() {
         <span class="action-owner">&#128100; ${a.owner || 'Unassigned'}</span>
         ${a.section ? `<span class="badge badge-gray">${a.section}</span>` : ''}
         ${dueFmt ? `<span class="action-due ${isOverdue?'overdue':''}">&#128197; ${isOverdue?'Overdue &middot; ':''}${dueFmt}</span>` : ''}
-        ${isStale ? `<span class="badge" style="background:var(--red);color:#fff;font-size:9px;letter-spacing:.04em">NO UPDATE</span>` : ''}
+        ${isStale ? `<span class="badge" style="background:var(--red);color:#fff;font-size:9px;letter-spacing:.04em">NO UPDATE</span>` : ''}${a.notes ? `<div class="action-notes" style="font-size:11.5px;color:var(--text-lt);margin:6px 0;padding-top:6px;border-top:1px solid var(--border);line-height:1.4">&#128221; ${a.notes}</div>` : ''}
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div>
@@ -1165,7 +1165,7 @@ function openAddAction() {
   document.getElementById('action-due').value = '';
   document.getElementById('action-section').value = 'Commercial';
   document.getElementById('action-status').value = 'In Progress';
-  document.getElementById('action-priority').value = 'Normal';
+  document.getElementById('action-priority').value = 'Normal'; document.getElementById('action-notes').value = '';
   document.getElementById('ownerSuggestions').classList.remove('open');
   openModal('modal-action');
 }
@@ -1181,7 +1181,7 @@ function openEditAction(id) {
   document.getElementById('action-due').value = item.due || '';
   document.getElementById('action-section').value = item.section || 'Commercial';
   document.getElementById('action-status').value = item.status || 'In Progress';
-  document.getElementById('action-priority').value = item.priority || 'Normal';
+  document.getElementById('action-priority').value = item.priority || 'Normal'; document.getElementById('action-notes').value = item.notes || '';
   document.getElementById('ownerSuggestions').classList.remove('open');
   openModal('modal-action');
 }
@@ -1195,7 +1195,7 @@ function saveAction() {
     due: document.getElementById('action-due').value,
     section: document.getElementById('action-section').value,
     status: document.getElementById('action-status').value,
-    priority: document.getElementById('action-priority').value,
+    priority: document.getElementById('action-priority').value, notes: document.getElementById('action-notes').value.trim(),
   };
   if (editingActionId) {
     const item = actionItems.find(a => a.id === editingActionId);
@@ -1212,7 +1212,7 @@ function saveAction() {
     saveToNotion('actions', {
       task: newItem.task, owner: newItem.owner, status: newItem.status,
       priority: cap(newItem.priority), section: newItem.section,
-      due: newItem.due || null, notes: '',
+      due: newItem.due || null, notes: newItem.notes || '',
     }).then(id => { if (id) newItem.notionId = id; });
   }
   closeModal('modal-action');
@@ -1288,7 +1288,7 @@ function renderDecisions() {
     window._did.push(d.id);
     const dateFmt = d.date ? new Date(d.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     return '<div class="decision-item" onclick="openEditDecision(window._did[' + idx + '])" style="cursor:pointer">'
-      + '<div class="decision-text">' + (d.text||'') + '</div>'
+      + '<div class="decision-text">' + (d.text||'') + '</div>' + (d.notes ? '<div class="decision-notes" style="font-size:11.5px;color:var(--text-lt);margin-bottom:6px;line-height:1.4">&#128221; ' + d.notes + '</div>' : '')
       + '<div class="decision-meta">'
       + '<span class="badge badge-purple">' + (d.section||'') + '</span>'
       + (d.decisionMaker ? '<span class="action-owner">&#128100; ' + d.decisionMaker + '</span>' : '')
@@ -1318,7 +1318,7 @@ function openAddDecision() {
   document.getElementById('decision-text').value = '';
   document.getElementById('decision-maker').value = '';
   document.getElementById('decision-section').value = 'Commercial';
-  document.getElementById('decision-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('decision-date').value = new Date().toISOString().split('T')[0]; document.getElementById('decision-notes').value = '';
   document.getElementById('decisionMakerSuggestions').classList.remove('open');
   openModal('modal-decision');
 }
@@ -1332,7 +1332,7 @@ function openEditDecision(id) {
   document.getElementById('decision-text').value = item.text || '';
   document.getElementById('decision-maker').value = item.decisionMaker || '';
   document.getElementById('decision-section').value = item.section || 'Commercial';
-  document.getElementById('decision-date').value = item.date || new Date().toISOString().split('T')[0];
+  document.getElementById('decision-date').value = item.date || new Date().toISOString().split('T')[0]; document.getElementById('decision-notes').value = item.notes || '';
   document.getElementById('decisionMakerSuggestions').classList.remove('open');
   openModal('modal-decision');
 }
@@ -1344,7 +1344,7 @@ function saveDecision() {
     text,
     decisionMaker: document.getElementById('decision-maker').value.trim() || null,
     section: document.getElementById('decision-section').value,
-    date: document.getElementById('decision-date').value,
+    date: document.getElementById('decision-date').value, notes: document.getElementById('decision-notes').value.trim(),
     fromTranscript: false,
   };
   if (editingDecisionId) {
