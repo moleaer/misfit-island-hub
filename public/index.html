@@ -1087,6 +1087,11 @@ function renderActions() {
     const aIsDone = a.status === 'Done' ? 1 : 0;
     const bIsDone = b.status === 'Done' ? 1 : 0;
     if (aIsDone !== bIsDone) return aIsDone - bIsDone;
+    // Owner A-Z, unassigned first; priority as tiebreak within an owner
+    const ao = (a.owner || '').trim();
+    const bo = (b.owner || '').trim();
+    if (!ao !== !bo) return ao ? 1 : -1;
+    if (ao && bo && ao !== bo) return ao.localeCompare(bo);
     return (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2);
   });
   const inProg = actionItems.filter(a => a.status === 'In Progress').length;
