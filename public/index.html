@@ -768,30 +768,39 @@ function selectActionItem(id, el) {
 // ═══════════════════════════════════════
 // AGENDA
 // ═══════════════════════════════════════
-// Standing items are hardcoded so they cannot be deleted, but they carry real
-// order values (20, 30) so agenda rows can be placed above or between them.
+// Standing items stay hardcoded so they cannot be deleted, but their POSITION is
+// data: `standingAfter` = how many agenda items sit above the block. Persisted in
+// Hub Settings. Any number of items can precede it.
+const STANDING_ID = '_standing';
 const STANDING_ITEMS = [
-  {id:'_standing_who',    topic:'Who needs what from the team?', presenter:'Baji', duration:5,  order:20, section:'Standing', _standing:true},
-  {id:'_standing_review', topic:'Action Item Review',            presenter:'Baji', duration:10, order:30, section:'Standing', _standing:true}
+  {id:'_standing_who',    topic:'Who needs what from the team?', presenter:'Baji', duration:5,  section:'Standing', _standing:true},
+  {id:'_standing_review', topic:'Action Item Review',            presenter:'Baji', duration:10, section:'Standing', _standing:true}
 ];
+let standingAfter = 0;
 
 // Single source of truth for BOTH the Agenda tab and Run of Show.
-function agendaOrdered() {
-  const items = agendaItems.map(i => ({...i, _standing:false}));
-  return [...STANDING_ITEMS, ...items].sort((a, b) => {
+function agendaDisplayList() {
+  const items = agendaItems.map(i => ({...i, _standing:false})).sort((a, b) => {
     const ao = (a.order === null || a.order === undefined) ? 99999 : a.order;
     const bo = (b.order === null || b.order === undefined) ? 99999 : b.order;
     return ao - bo;
   });
+  const k = Math.max(0, Math.min(standingAfter | 0, items.length));
+  return [...items.slice(0, k), ...STANDING_ITEMS, ...items.slice(k)];
 }
+function agendaOrdered() { return agendaDisplayList(); }
 
 function standingItemHTML(item, openCount) {
   const extra = item.topic === 'Action Item Review'
     ? '<span class="badge badge-' + (openCount > 0 ? 'orange' : 'green') + '">' + openCount + ' open</span>'
     : '';
   return [
-    '<div class="agenda-item standing-item">',
-    '<div style="color:var(--text-xlt);font-size:15px;padding:0 8px 0 0;flex-shrink:0;user-select:none">&#128204;</div>',
+    '<div class="agenda-item standing-item" draggable="true" data-agenda-id="' + STANDING_ID + '"',
+    ' ondragstart="agendaDragStart(event,\'' + STANDING_ID + '\')"',
+    ' ondragover="agendaDragOver(event)"',
+    ' ondrop="agendaDrop(event,\'' + STANDING_ID + '\')"',
+    ' ondragend="agendaDragEnd(event)" style="cursor:grab">',
+    '<div style="cursor:grab;color:var(--text-xlt);font-size:15px;padding:0 8px 0 0;flex-shrink:0;user-select:none" title="Drag to move the standing block">&#8942;&#8942;</div>',
     '<div class="agenda-item-left">',
     '<div class="agenda-item-topic">' + item.topic + '</div>',
     '<div class="agenda-item-meta"><span class="badge badge-gray">Standing</span>' + extra + '</div>',
@@ -864,36 +873,65 @@ function agendaDragOver(e) {
 async function agendaDrop(e, targetId) {
   e.preventDefault();
   e.stopPropagation();
-  e.currentTarget.style.outline = '';
-  if (!_dragAgendaId || String(_dragAgendaId) === String(targetId)) return;
-  const fromItem = agendaItems.find(i => String(i.id) === String(_dragAgendaId));
-  const toItem   = agendaItems.find(i => String(i.id) === String(targetId));
-  if (!fromItem || !toItem) return;
-  const sectionChanged = fromItem.section !== toItem.section;
-  fromItem.section = toItem.section;
-  const fromIdx = agendaItems.indexOf(fromItem);
-  const toIdx   = agendaItems.indexOf(toItem);
-  agendaItems.splice(fromIdx, 1);
-  agendaItems.splice(toIdx, 0, fromItem);
+  if (e.currentTarget) e.currentTarget.style.outline = '';
+  const src = String(_dragAgendaId || '');
+  const tgt = String(targetId);
   _dragAgendaId = null;
+  if (!src || src === tgt) return;
+
+  const before = new Map(agendaItems.map(i => [String(i.id), i.order]));
+  const beforeStanding = standingAfter;
+  const isStanding = x => !!x._standing;
+
+  // Operate on the flat display list - far easier to reason about than raw orders
+  let list = agendaDisplayList();
+
+  let unit;
+  if (src === STANDING_ID) {
+    const i = list.findIndex(isStanding);
+    if (i < 0) return;
+    unit = list.splice(i, STANDING_ITEMS.length);
+  } else {
+    const i = list.findIndex(x => !x._standing && String(x.id) === src);
+    if (i < 0) return;
+    unit = list.splice(i, 1);
+  }
+
+  let ti = (tgt === STANDING_ID)
+    ? list.findIndex(isStanding)
+    : list.findIndex(x => !x._standing && String(x.id) === tgt);
+  if (ti < 0) ti = list.length;
+  list.splice(ti, 0, ...unit);
+
+  // Section follows the drop target (agenda-to-agenda drops only)
+  let sectionItem = null;
+  if (src !== STANDING_ID && tgt !== STANDING_ID) {
+    const moved = agendaItems.find(i => String(i.id) === src);
+    const onto  = agendaItems.find(i => String(i.id) === tgt);
+    if (moved && onto && moved.section !== onto.section) {
+      moved.section = onto.section;
+      sectionItem = moved;
+    }
+  }
+
+  // Derive persisted state from the resulting list
+  list.filter(x => !x._standing).forEach((x, idx) => {
+    const real = agendaItems.find(i => String(i.id) === String(x.id));
+    if (real) real.order = (idx + 1) * 10;
+  });
+  // Everything before the standing block is an agenda item, so its index IS the count
+  standingAfter = list.findIndex(isStanding);
+
   renderAgenda(); renderROS();
-  persistAgendaOrder(sectionChanged ? fromItem : null);
+  persistAgendaLayout(before, beforeStanding, sectionItem);
 }
 
-// Slot 10 sits ABOVE both standing items (20, 30); everything else follows at 40+.
-// So exactly one agenda item can open the call - that is the intended promotion slot.
-const AGENDA_ORDER_SEQ = [10, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150];
-async function persistAgendaOrder(alsoSaveSection) {
-  const changed = [];
-  agendaItems.forEach((it, idx) => {
-    const want = AGENDA_ORDER_SEQ[idx] !== undefined ? AGENDA_ORDER_SEQ[idx] : 200 + idx * 10;
-    if (it.order !== want) { it.order = want; changed.push(it); }
-  });
-  if (alsoSaveSection && changed.indexOf(alsoSaveSection) === -1) changed.push(alsoSaveSection);
+async function persistAgendaLayout(before, beforeStanding, sectionItem) {
+  const changed = agendaItems.filter(i =>
+    i.notionId && (before.get(String(i.id)) !== i.order || i === sectionItem));
   for (const it of changed) {
-    if (!it.notionId) continue;   // not yet synced - local integer id, never send as a Notion id
     const data = { order: it.order };
-    if (alsoSaveSection && it === alsoSaveSection) data.section = it.section;
+    if (it === sectionItem) data.section = it.section;
     try {
       await fetch(`${API_BASE}/notion-save`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -901,6 +939,10 @@ async function persistAgendaOrder(alsoSaveSection) {
       });
     } catch (err) { console.error('agenda order persist failed', it.notionId, err); }
     await new Promise(r => setTimeout(r, 600));
+  }
+  if (standingAfter !== beforeStanding) {
+    try { await saveSetting('standingAfter', String(standingAfter)); }
+    catch (err) { console.error('standingAfter persist failed', err); }
   }
 }
 function agendaDragEnd(e) {
@@ -1387,7 +1429,7 @@ function renderROS() {
   let totalMin = 0;
 
   // Shared global order: standing items sit at 20 and 30 (see agendaOrdered)
-  const allItems = agendaOrdered().map(i => ({...i, _section: i._standing ? 'Standing' : i.section}));
+  const allItems = agendaDisplayList().map(i => ({...i, _section: i._standing ? 'Standing' : i.section}));
 
   if (allItems.length === 0) {
     container.innerHTML = '<div class="empty-state"><div class="empty-state-ico">&#128203;</div><div class="empty-state-title">No agenda items</div></div>';
@@ -2202,6 +2244,9 @@ async function loadFromNotion() {
 
     // Apply settings from Notion (Notion is source of truth for date/time)
     if (data.settingsIds) settingsPageIds = data.settingsIds;
+    if (data.settings && data.settings.standingAfter !== undefined) {
+      standingAfter = parseInt(data.settings.standingAfter, 10) || 0;
+    }
     if (data.settings?.meetingDate) {
       document.getElementById('meetingDate').value = data.settings.meetingDate;
       localStorage.setItem('mi_meetingDate', data.settings.meetingDate);
