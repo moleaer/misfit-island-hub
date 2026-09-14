@@ -103,6 +103,7 @@ exports.handler = async (event) => {
           presenter: prop(p, 'Presenter'),
           section:   prop(p, 'Section'),
           duration:  prop(p, 'Duration') || 5,
+          order: prop(p, 'Order'),
           notes:     prop(p, 'Notes'),
           weekOf:    prop(p, 'Week of'),
         })),

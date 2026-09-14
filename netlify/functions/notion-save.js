@@ -57,6 +57,7 @@ function buildProps(type, data) {
     if (data.presenter !== undefined) props['Presenter'] = sel(data.presenter);
     if (data.section   !== undefined) props['Section']   = sel(data.section);
     if (data.duration  !== undefined) props['Duration']  = num(data.duration);
+    if (data.order !== undefined) props['Order'] = { number: data.order };
     if (data.notes     !== undefined) props['Notes']     = txt(data.notes);
     if (data.weekOf    !== undefined) props['Week of']   = dt(data.weekOf);
     return props;
