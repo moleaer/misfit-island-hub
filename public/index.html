@@ -389,6 +389,7 @@
           <span style="font-size:11px;font-weight:700;color:var(--text-xlt);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Status</span>
           <div class="filter-chips" id="filterChips" style="margin:0">
           <button class="chip active" onclick="filterActions('all',this)">All</button>
+          <button class="chip" onclick="filterActions('Not Started',this)">Not Started</button>
           <button class="chip" onclick="filterActions('In Progress',this)">In Progress</button>
           <button class="chip" onclick="filterActions('On Hold',this)">On Hold</button>
           <button class="chip" onclick="filterActions('Delayed',this)">Delayed</button>
@@ -599,7 +600,8 @@
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
       <div class="field" style="margin-bottom:0"><div class="lbl">Status</div>
         <select class="inp" id="action-status">
-          <option value="In Progress">In Progress</option>
+          <option value="Not Started">Not Started</option>
+          <option value="In Progress" selected>In Progress</option>
           <option value="On Hold">On Hold</option>
           <option value="Delayed">Delayed</option>
           <option value="Done">Done</option>
@@ -766,101 +768,55 @@ function selectActionItem(id, el) {
 // ═══════════════════════════════════════
 // AGENDA
 // ═══════════════════════════════════════
+// Standing items are hardcoded so they cannot be deleted, but they carry real
+// order values (20, 30) so agenda rows can be placed above or between them.
+const STANDING_ITEMS = [
+  {id:'_standing_who',    topic:'Who needs what from the team?', presenter:'Baji', duration:5,  order:20, section:'Standing', _standing:true},
+  {id:'_standing_review', topic:'Action Item Review',            presenter:'Baji', duration:10, order:30, section:'Standing', _standing:true}
+];
+
+// Single source of truth for BOTH the Agenda tab and Run of Show.
+function agendaOrdered() {
+  const items = agendaItems.map(i => ({...i, _standing:false}));
+  return [...STANDING_ITEMS, ...items].sort((a, b) => {
+    const ao = (a.order === null || a.order === undefined) ? 99999 : a.order;
+    const bo = (b.order === null || b.order === undefined) ? 99999 : b.order;
+    return ao - bo;
+  });
+}
+
+function standingItemHTML(item, openCount) {
+  const extra = item.topic === 'Action Item Review'
+    ? '<span class="badge badge-' + (openCount > 0 ? 'orange' : 'green') + '">' + openCount + ' open</span>'
+    : '';
+  return [
+    '<div class="agenda-item standing-item">',
+    '<div style="color:var(--text-xlt);font-size:15px;padding:0 8px 0 0;flex-shrink:0;user-select:none">&#128204;</div>',
+    '<div class="agenda-item-left">',
+    '<div class="agenda-item-topic">' + item.topic + '</div>',
+    '<div class="agenda-item-meta"><span class="badge badge-gray">Standing</span>' + extra + '</div>',
+    '</div>',
+    '<div class="agenda-item-dur">' + item.duration + ' min</div>',
+    '</div>'
+  ].join('');
+}
+
 function renderAgenda() {
   const container = document.getElementById('agendaSections');
   container.innerHTML = '';
-  window._aid = []; // reset agenda id registry
-
-  // Standing: Action Item Review
+  window._aid = [];
+  const items = agendaOrdered();
   const openCount = actionItems.filter(a => a.status !== 'Done').length;
-  const standingWrap = document.createElement('div');
-  standingWrap.className = 'agenda-section';
-  standingWrap.innerHTML = `
-    <div class="agenda-section-hdr standing">
-      <div class="agenda-section-name">&#128204; Standing — Action Item Review</div>
-      <div class="agenda-section-time">10 min</div>
-    </div>
-    <div class="agenda-item standing-item">
-      <div class="agenda-item-left">
-        <div class="agenda-item-topic">Review open action items</div>
-        <div class="agenda-item-meta">
-          <span class="badge badge-${openCount > 0 ? 'orange' : 'green'}">${openCount} open item${openCount !== 1 ? 's' : ''}</span>
-          <span style="font-size:11px;color:var(--text-xlt)">Go to Actions tab to update status before the call</span>
-        </div>
-      </div>
-      <div class="agenda-item-dur">10 min</div>
-    </div>
-  `;
-  container.appendChild(standingWrap);
-
-  // Regular sections — draggable at section level
-  SECTIONS.forEach(section => {
-    const items = agendaItems.filter(i => i.section === section);
-    const totalMin = items.reduce((s,i) => s + (parseInt(i.duration)||0), 0);
-    const wrap = document.createElement('div');
-    wrap.className = 'agenda-section';
-    wrap.setAttribute('draggable', 'true');
-    wrap.setAttribute('data-section-name', section);
-    wrap.addEventListener('dragstart', (e) => {
-      if (e.target.closest('.agenda-item')) return; // let item drag handle it
-      e.stopPropagation();
-      _dragSection = section;
-      e.dataTransfer.effectAllowed = 'move';
-      setTimeout(() => wrap.style.opacity = '0.4', 0);
-    });
-    wrap.addEventListener('dragover', (e) => {
-      if (_dragSection && !_dragAgendaId) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        wrap.style.outline = '2px dashed var(--blue)';
-      } else if (_dragAgendaId) {
-        e.preventDefault(); // allow cross-section item drop on section body
-      }
-    });
-    wrap.addEventListener('dragleave', () => { wrap.style.outline = ''; });
-    wrap.addEventListener('drop', (e) => {
-      wrap.style.outline = '';
-      wrap.style.opacity = '';
-      if (_dragSection && _dragSection !== section) {
-        // Reorder sections
-        e.preventDefault(); e.stopPropagation();
-        const fromIdx = SECTIONS.indexOf(_dragSection);
-        const toIdx   = SECTIONS.indexOf(section);
-        SECTIONS.splice(fromIdx, 1);
-        SECTIONS.splice(toIdx, 0, _dragSection);
-        _dragSection = null;
-        renderAgenda(); renderROS();
-      } else if (_dragAgendaId) {
-        // Cross-section item drop — reassign to this section
-        e.preventDefault();
-        const fromItem = agendaItems.find(i => String(i.id) === String(_dragAgendaId));
-        if (fromItem && fromItem.section !== section) {
-          fromItem.section = section;
-          renderAgenda(); renderROS();
-        }
-        _dragAgendaId = null;
-      }
-    });
-    wrap.addEventListener('dragend', () => {
-      wrap.style.opacity = '';
-      wrap.style.outline = '';
-      _dragSection = null;
-      document.querySelectorAll('.agenda-section').forEach(el => { el.style.outline = ''; el.style.opacity = ''; });
-    });
-    wrap.innerHTML = `
-      <div class="agenda-section-hdr regular" style="cursor:grab" title="Drag to reorder section">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="color:rgba(255,255,255,.5);font-size:14px;user-select:none">&#8942;&#8942;</span>
-          <div class="agenda-section-name">${section}</div>
-        </div>
-        <div class="agenda-section-time">${totalMin} min</div>
-      </div>
-      <div id="sec-${section.replace(/\s+/g,'-')}">
-        ${items.length === 0 ? '<div style="font-size:12px;color:var(--text-xlt);padding:6px 4px">No items yet</div>' : items.map(item => agendaItemHTML(item)).join('')}
-      </div>
-    `;
-    container.appendChild(wrap);
-  });
+  const totalMin = items.reduce((s, i) => s + (parseInt(i.duration) || 0), 0);
+  const wrap = document.createElement('div');
+  wrap.className = 'agenda-section';
+  wrap.innerHTML =
+    '<div class="agenda-section-hdr regular">' +
+      '<div class="agenda-section-name">Run order</div>' +
+      '<div class="agenda-section-time">' + totalMin + ' min</div>' +
+    '</div>' +
+    items.map(it => it._standing ? standingItemHTML(it, openCount) : agendaItemHTML(it)).join('');
+  container.appendChild(wrap);
 }
 
 function agendaItemHTML(item) {
@@ -871,6 +827,7 @@ function agendaItemHTML(item) {
     ? ('\u{1F464} ' + item.presenter)
     : '<span style="color:var(--text-xlt)">\u{1F464} No presenter</span>';
   const notes = item.notes ? '<span class="badge badge-teal">Notes</span>' : '';
+  const secBadge = '<span class="badge badge-blue">' + (item.section || 'Other') + '</span>';
   const dur = (item.duration || '?') + ' min';
   return [
     '<div class="agenda-item ' + (item.presenter ? 'has-presenter' : '') + '" draggable="true" data-agenda-id="' + item.id + '" data-section="' + item.section + '"',
@@ -881,7 +838,7 @@ function agendaItemHTML(item) {
     '<div style="cursor:grab;color:var(--text-xlt);font-size:16px;padding:0 8px 0 0;flex-shrink:0;user-select:none" title="Drag to reorder">&#8942;&#8942;</div>',
     '<div class="agenda-item-left" onclick="openEditAgendaItem(window._aid[' + idx + '])" style="cursor:pointer;flex:1">',
     '<div class="agenda-item-topic">' + (item.topic || '') + '</div>',
-    '<div class="agenda-item-meta">' + presenter + notes + '</div>',
+    '<div class="agenda-item-meta">' + presenter + secBadge + notes + '</div>',
     '</div>',
     '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">',
     '<div class="agenda-item-dur">' + dur + '</div>',
@@ -904,7 +861,7 @@ function agendaDragOver(e) {
   e.dataTransfer.dropEffect = 'move';
   e.currentTarget.style.outline = '2px dashed var(--blue)';
 }
-function agendaDrop(e, targetId) {
+async function agendaDrop(e, targetId) {
   e.preventDefault();
   e.stopPropagation();
   e.currentTarget.style.outline = '';
@@ -912,7 +869,7 @@ function agendaDrop(e, targetId) {
   const fromItem = agendaItems.find(i => String(i.id) === String(_dragAgendaId));
   const toItem   = agendaItems.find(i => String(i.id) === String(targetId));
   if (!fromItem || !toItem) return;
-  // Cross-section drop: reassign section to match target
+  const sectionChanged = fromItem.section !== toItem.section;
   fromItem.section = toItem.section;
   const fromIdx = agendaItems.indexOf(fromItem);
   const toIdx   = agendaItems.indexOf(toItem);
@@ -920,6 +877,31 @@ function agendaDrop(e, targetId) {
   agendaItems.splice(toIdx, 0, fromItem);
   _dragAgendaId = null;
   renderAgenda(); renderROS();
+  persistAgendaOrder(sectionChanged ? fromItem : null);
+}
+
+// Slot 10 sits ABOVE both standing items (20, 30); everything else follows at 40+.
+// So exactly one agenda item can open the call - that is the intended promotion slot.
+const AGENDA_ORDER_SEQ = [10, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150];
+async function persistAgendaOrder(alsoSaveSection) {
+  const changed = [];
+  agendaItems.forEach((it, idx) => {
+    const want = AGENDA_ORDER_SEQ[idx] !== undefined ? AGENDA_ORDER_SEQ[idx] : 200 + idx * 10;
+    if (it.order !== want) { it.order = want; changed.push(it); }
+  });
+  if (alsoSaveSection && changed.indexOf(alsoSaveSection) === -1) changed.push(alsoSaveSection);
+  for (const it of changed) {
+    if (!it.notionId) continue;   // not yet synced - local integer id, never send as a Notion id
+    const data = { order: it.order };
+    if (alsoSaveSection && it === alsoSaveSection) data.section = it.section;
+    try {
+      await fetch(`${API_BASE}/notion-save`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'agenda', id: it.notionId, data })
+      });
+    } catch (err) { console.error('agenda order persist failed', it.notionId, err); }
+    await new Promise(r => setTimeout(r, 600));
+  }
 }
 function agendaDragEnd(e) {
   document.querySelectorAll('.agenda-item').forEach(el => { el.style.opacity = ''; el.style.outline = ''; });
@@ -990,7 +972,8 @@ function saveAgendaItem() {
   const weekOf = document.getElementById('meetingDate')?.value || getWeekOf();
   if (editingAgendaItem) {
     const saved = agendaItems.find(i => i.id === editingAgendaItem);
-    if (saved?.notionId) saveToNotion('agenda', { ...item, weekOf }, saved.notionId);
+    // NOTE: weekOf deliberately omitted on edit - including it re-dates the item
+    if (saved?.notionId) saveToNotion('agenda', { ...item }, saved.notionId);
   } else {
     const newest = agendaItems[agendaItems.length - 1];
     saveToNotion('agenda', { ...item, weekOf }).then(id => { if (id) newest.notionId = id; });
@@ -1129,6 +1112,7 @@ function renderActions() {
         <div>
           <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-xlt);margin-bottom:4px">Status</div>
           <select class="status-select" style="width:100%" onclick="event.stopPropagation()" onchange="updateActionStatus('${a.id}',this.value)">
+            <option value="Not Started" ${a.status==='Not Started'?'selected':''}>Not Started</option>
             <option value="In Progress" ${a.status==='In Progress'?'selected':''}>In Progress</option>
             <option value="On Hold" ${a.status==='On Hold'?'selected':''}>On Hold</option>
             <option value="Delayed" ${a.status==='Delayed'?'selected':''}>Delayed</option>
@@ -1402,25 +1386,16 @@ function renderROS() {
   const [h, m] = startTime.split(':').map(Number);
   let totalMin = 0;
 
-  // Build full ordered list: standing items first, then agenda items by section
-  const allItems = [
-    {topic:'Who needs what from the team?', presenter:'Baji', duration:5, _standing:true, _section:'Standing'},
-    {topic:'Action Item Review', presenter:'Baji', duration:10, _standing:true, _section:'Standing'},
-    ...agendaItems.map(i => ({...i, _standing:false, _section:i.section}))
-  ];
+  // Shared global order: standing items sit at 20 and 30 (see agendaOrdered)
+  const allItems = agendaOrdered().map(i => ({...i, _section: i._standing ? 'Standing' : i.section}));
 
   if (allItems.length === 0) {
     container.innerHTML = '<div class="empty-state"><div class="empty-state-ico">&#128203;</div><div class="empty-state-title">No agenda items</div></div>';
     return;
   }
 
-  let currentSec = null;
   let html = '';
   allItems.forEach((item, idx) => {
-    if (item._section !== currentSec) {
-      currentSec = item._section;
-      if (!item._standing) html += `<div class="sec-label">${item._section}</div>`;
-    }
     const timeStr = formatTime12(h, m + totalMin);
     const isDone = rosCompleted.has(idx);
     const firstUnchecked = allItems.findIndex((_,i) => !rosCompleted.has(i));
@@ -2205,7 +2180,9 @@ async function loadFromNotion() {
         presenter: a.presenter,
         section: a.section || 'Other',
         duration: a.duration || 5,
+        order: (a.order === null || a.order === undefined) ? null : a.order,
         notes: a.notes,
+        weekOf: a.weekOf,
         notionId: a.id,
       }));
     }
