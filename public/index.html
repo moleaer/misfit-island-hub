@@ -1092,12 +1092,14 @@ function filterDecisionPerson(person) {
 
 
 function renderActionStats() {
+  const totalOpen = actionItems.filter(a => a.status !== 'Done').length;
   const notStarted = actionItems.filter(a => a.status === 'Not Started').length;
   const inProg = actionItems.filter(a => a.status === 'In Progress').length;
   const onHold = actionItems.filter(a => a.status === 'On Hold' || a.status === 'Delayed').length;
   const done   = actionItems.filter(a => a.status === 'Done').length;
   const el = document.getElementById('actionStats');
   if (el) el.innerHTML = `
+    <div class="stat-cell" style="border-color:var(--blue)"><div class="stat-val">${totalOpen}</div><div class="stat-lbl">Open Items</div></div>
     <div class="stat-cell"><div class="stat-val">${notStarted}</div><div class="stat-lbl">Not Started</div></div>
     <div class="stat-cell"><div class="stat-val orange">${inProg}</div><div class="stat-lbl">In Progress</div></div>
     <div class="stat-cell"><div class="stat-val red">${onHold}</div><div class="stat-lbl">On Hold / Delayed</div></div>
@@ -1124,12 +1126,14 @@ function renderActions() {
     if (ao && bo && ao !== bo) return ao.localeCompare(bo);
     return (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2);
   });
+  const totalOpen = actionItems.filter(a => a.status !== 'Done').length;
   const notStarted = actionItems.filter(a => a.status === 'Not Started').length;
   const inProg = actionItems.filter(a => a.status === 'In Progress').length;
   const onHold = actionItems.filter(a => a.status === 'On Hold' || a.status === 'Delayed').length;
   const done = actionItems.filter(a => a.status === 'Done').length;
 
   document.getElementById('actionStats').innerHTML = `
+    <div class="stat-cell" style="border-color:var(--blue)"><div class="stat-val">${totalOpen}</div><div class="stat-lbl">Open Items</div></div>
     <div class="stat-cell"><div class="stat-val">${notStarted}</div><div class="stat-lbl">Not Started</div></div>
     <div class="stat-cell"><div class="stat-val orange">${inProg}</div><div class="stat-lbl">In Progress</div></div>
     <div class="stat-cell"><div class="stat-val red">${onHold}</div><div class="stat-lbl">On Hold / Delayed</div></div>
