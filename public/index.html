@@ -120,7 +120,7 @@
   .success-box{background:var(--green-lt);border-left:3px solid var(--green);border-radius:0 8px 8px 0;padding:10px 12px;font-size:12px;color:var(--green-dark);line-height:1.5}
 
   /* STATS */
-  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:10px;margin-bottom:14px}
   .stat-cell{background:#fff;border-radius:10px;padding:13px 12px;text-align:center;border:1px solid var(--border)}
   .stat-val{font-size:22px;font-weight:900;color:var(--blue);letter-spacing:-.5px}
   .stat-lbl{font-size:10px;font-weight:700;color:var(--text-xlt);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
@@ -170,6 +170,9 @@
   .action-owner{font-size:11px;color:var(--text-lt);display:flex;align-items:center;gap:4px}
   .action-due{font-size:10.5px;font-weight:600;color:var(--text-xlt)}
   .action-due.overdue{color:var(--red)}
+  .action-body{display:none}
+  .action-item.expanded .action-body{display:block}
+  .action-toggle{line-height:1;font-size:11px}
   .status-select{padding:6px 10px;border-radius:7px;border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:var(--offwhite);color:var(--text-mid);-webkit-appearance:none;appearance:none;font-family:Arial,sans-serif}
 
   /* DECISION LOG */
@@ -1089,11 +1092,13 @@ function filterDecisionPerson(person) {
 
 
 function renderActionStats() {
+  const notStarted = actionItems.filter(a => a.status === 'Not Started').length;
   const inProg = actionItems.filter(a => a.status === 'In Progress').length;
   const onHold = actionItems.filter(a => a.status === 'On Hold' || a.status === 'Delayed').length;
   const done   = actionItems.filter(a => a.status === 'Done').length;
   const el = document.getElementById('actionStats');
   if (el) el.innerHTML = `
+    <div class="stat-cell"><div class="stat-val">${notStarted}</div><div class="stat-lbl">Not Started</div></div>
     <div class="stat-cell"><div class="stat-val orange">${inProg}</div><div class="stat-lbl">In Progress</div></div>
     <div class="stat-cell"><div class="stat-val red">${onHold}</div><div class="stat-lbl">On Hold / Delayed</div></div>
     <div class="stat-cell"><div class="stat-val green">${done}</div><div class="stat-lbl">Done</div></div>
@@ -1119,11 +1124,13 @@ function renderActions() {
     if (ao && bo && ao !== bo) return ao.localeCompare(bo);
     return (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2);
   });
+  const notStarted = actionItems.filter(a => a.status === 'Not Started').length;
   const inProg = actionItems.filter(a => a.status === 'In Progress').length;
   const onHold = actionItems.filter(a => a.status === 'On Hold' || a.status === 'Delayed').length;
   const done = actionItems.filter(a => a.status === 'Done').length;
 
   document.getElementById('actionStats').innerHTML = `
+    <div class="stat-cell"><div class="stat-val">${notStarted}</div><div class="stat-lbl">Not Started</div></div>
     <div class="stat-cell"><div class="stat-val orange">${inProg}</div><div class="stat-lbl">In Progress</div></div>
     <div class="stat-cell"><div class="stat-val red">${onHold}</div><div class="stat-lbl">On Hold / Delayed</div></div>
     <div class="stat-cell"><div class="stat-val green">${done}</div><div class="stat-lbl">Done</div></div>
@@ -1142,32 +1149,37 @@ function renderActions() {
     return `<div class="action-item status-${a.status.toLowerCase().replace(/\s+/g,'-')} priority-${(a.priority||'normal').toLowerCase()}" id="action-${a.id}" onclick="selectActionItem('${a.id}', this); openEditAction('${a.id}')">
       <div class="action-top">
         <div class="action-task">${a.task}</div>
-        <button class="btn btn-secondary btn-sm" onclick="deleteAction('${a.id}')" style="flex-shrink:0;padding:4px 8px">&#x2715;</button>
+        <button class="btn btn-secondary btn-sm action-toggle" title="Expand" onclick="event.stopPropagation();toggleActionCard('${a.id}',this)" style="flex-shrink:0;padding:4px 8px">&#9662;</button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();deleteAction('${a.id}')" style="flex-shrink:0;padding:4px 8px">&#x2715;</button>
       </div>
       <div class="action-meta">
         <span class="action-owner">&#128100; ${a.owner || 'Unassigned'}</span>
+        <span class="badge badge-gray">${a.status}</span>
         ${a.section ? `<span class="badge badge-gray">${a.section}</span>` : ''}
         ${dueFmt ? `<span class="action-due ${isOverdue?'overdue':''}">&#128197; ${isOverdue?'Overdue &middot; ':''}${dueFmt}</span>` : ''}
-        ${isStale ? `<span class="badge" style="background:var(--red);color:#fff;font-size:9px;letter-spacing:.04em">NO UPDATE</span>` : ''}${a.notes ? `<div class="action-notes" style="font-size:11.5px;color:var(--text-lt);margin:6px 0;padding-top:6px;border-top:1px solid var(--border);line-height:1.4">&#128221; ${a.notes}</div>` : ''}
+        ${isStale ? `<span class="badge" style="background:var(--red);color:#fff;font-size:9px;letter-spacing:.04em">NO UPDATE</span>` : ''}
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div>
-          <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-xlt);margin-bottom:4px">Status</div>
-          <select class="status-select" style="width:100%" onclick="event.stopPropagation()" onchange="updateActionStatus('${a.id}',this.value)">
-            <option value="Not Started" ${a.status==='Not Started'?'selected':''}>Not Started</option>
-            <option value="In Progress" ${a.status==='In Progress'?'selected':''}>In Progress</option>
-            <option value="On Hold" ${a.status==='On Hold'?'selected':''}>On Hold</option>
-            <option value="Delayed" ${a.status==='Delayed'?'selected':''}>Delayed</option>
-            <option value="Done" ${a.status==='Done'?'selected':''}>Done</option>
-          </select>
-        </div>
-        <div>
-          <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-xlt);margin-bottom:4px">Priority</div>
-          <select class="status-select" style="width:100%" onclick="event.stopPropagation()" onchange="updateActionPriority('${a.id}',this.value)">
-            <option value="Urgent" ${a.priority==='Urgent'?'selected':''}>🚨 Urgent</option>
-            <option value="High" ${a.priority==='High'?'selected':''}>🟠 High</option>
-            <option value="Normal" ${a.priority==='Normal'?'selected':''}>🟢 Normal</option>
-          </select>
+      <div class="action-body">
+        ${a.notes ? `<div class="action-notes" style="font-size:11.5px;color:var(--text-lt);margin:6px 0 10px;padding-top:6px;border-top:1px solid var(--border);line-height:1.4">&#128221; ${a.notes}</div>` : ''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-xlt);margin-bottom:4px">Status</div>
+            <select class="status-select" style="width:100%" onclick="event.stopPropagation()" onchange="updateActionStatus('${a.id}',this.value)">
+              <option value="Not Started" ${a.status==='Not Started'?'selected':''}>Not Started</option>
+              <option value="In Progress" ${a.status==='In Progress'?'selected':''}>In Progress</option>
+              <option value="On Hold" ${a.status==='On Hold'?'selected':''}>On Hold</option>
+              <option value="Delayed" ${a.status==='Delayed'?'selected':''}>Delayed</option>
+              <option value="Done" ${a.status==='Done'?'selected':''}>Done</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-xlt);margin-bottom:4px">Priority</div>
+            <select class="status-select" style="width:100%" onclick="event.stopPropagation()" onchange="updateActionPriority('${a.id}',this.value)">
+              <option value="Urgent" ${a.priority==='Urgent'?'selected':''}>&#128680; Urgent</option>
+              <option value="High" ${a.priority==='High'?'selected':''}>&#128992; High</option>
+              <option value="Normal" ${a.priority==='Normal'?'selected':''}>&#128994; Normal</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>`;
@@ -1176,6 +1188,14 @@ function renderActions() {
   // Also refresh the standing agenda item count
   renderAgenda();
   populateActionPersonChips();
+}
+
+function toggleActionCard(id, btn) {
+  const card = document.getElementById('action-' + id);
+  if (!card) return;
+  const open = card.classList.toggle('expanded');
+  btn.innerHTML = open ? '&#9652;' : '&#9662;';
+  btn.title = open ? 'Collapse' : 'Expand';
 }
 
 function filterActions(filter, el) {
